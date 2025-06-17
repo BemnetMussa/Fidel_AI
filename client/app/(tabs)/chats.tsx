@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Image,
   Keyboard,
@@ -12,23 +12,141 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
+import axios, { isAxiosError } from "axios";
+
+// Add your Gemini API key here
+const GEMINI_API_KEY = "YOUR_API_KEY";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+interface Message {
+  sender: "user" | "ai";
+  text: string;
+  timestamp: string;
+}
 
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
-  const [messages, setMessages] = useState<string[]>([]);
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const sendMessage = () => {
-    if (input.trim()) {
-      setMessages([...messages, input]);
-      setInput("");
-      console.log(input);
+  const sendMessageToGemini = async (userMessage: string) => {
+    try {
+      setIsLoading(true);
+
+      const response = await axios.post(
+        GEMINI_API_URL,
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: userMessage,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000, // 30 second timeout
+        }
+      );
+
+      if (
+        response.data.candidates &&
+        response.data.candidates[0]?.content?.parts?.[0]?.text
+      ) {
+        const aiResponse = response.data.candidates[0].content.parts[0].text;
+
+        // Add AI response to messages
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "ai",
+            text: aiResponse,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      } else {
+        throw new Error("Invalid response from Gemini API");
+      }
+    } catch (error) {
+      console.error("Error calling Gemini API:", error);
+
+      let errorMessage =
+        "Sorry, I'm having trouble responding right now. Please try again.";
+
+      // Type guard for axios errors
+      if (isAxiosError(error)) {
+        if (error.code === "ECONNABORTED") {
+          errorMessage =
+            "Request timed out. Please check your connection and try again.";
+        } else if (error.response?.status === 429) {
+          errorMessage =
+            "Too many requests. Please wait a moment and try again.";
+        } else if (error.response?.status === 401) {
+          errorMessage = "Authentication failed. Please check your API key.";
+        } else if (error.response?.status === 403) {
+          errorMessage = "Access forbidden. Please check your API permissions.";
+        } else if (error.response && error.response.status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
+
+      // Add error message
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: errorMessage,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const sendMessage = async () => {
+    if (input.trim()) {
+      const userMessage = input.trim();
+
+      // Add user message immediately
+      const newUserMessage: Message = {
+        sender: "user",
+        text: userMessage,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, newUserMessage]);
+      setInput("");
+
+      // Send to Gemini API
+      await sendMessageToGemini(userMessage);
+    }
+  };
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
   // This is for the Input to come up with the keyboard
   useEffect(() => {
@@ -49,6 +167,17 @@ export default function ChatView() {
       keyboardDidShowListener?.remove();
       keyboardDidHideListener?.remove();
     };
+  }, []);
+
+  // Initialize with a welcome message
+  useEffect(() => {
+    setMessages([
+      {
+        sender: "ai",
+        text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+        timestamp: new Date().toISOString(),
+      },
+    ]);
   }, []);
 
   return (
@@ -72,12 +201,13 @@ export default function ChatView() {
         style={{ flex: 1 }}
       >
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-4 mb-16"
           contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {dummyMessages.map((msg, idx) => (
+          {messages.map((msg, idx) => (
             <View
               key={idx}
               className={`flex-row my-1 ${
@@ -104,6 +234,15 @@ export default function ChatView() {
               </View>
             </View>
           ))}
+
+          {/* Loading indicator */}
+          {isLoading && (
+            <View className="flex-row justify-start my-1">
+              <View className="bg-gray-200 rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3">
+                <ActivityIndicator size="small" color="#666" />
+              </View>
+            </View>
+          )}
         </ScrollView>
 
         <View
@@ -125,12 +264,18 @@ export default function ChatView() {
               onChangeText={setInput}
               returnKeyType="send"
               onSubmitEditing={sendMessage}
+              editable={!isLoading}
             />
             <TouchableOpacity
               onPress={sendMessage}
-              className="p-2 active:opacity-80"
+              className={`p-2 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
+              disabled={isLoading}
             >
-              <MaterialCommunityIcons name="send" size={24} />
+              <MaterialCommunityIcons
+                name="send"
+                size={24}
+                color={isLoading ? "#ccc" : "#007AFF"}
+              />
             </TouchableOpacity>
           </View>
         </View>
