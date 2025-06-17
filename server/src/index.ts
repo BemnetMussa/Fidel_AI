@@ -1,18 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
-import { adaptApiHandler } from "./route/adaptRequestResponse";
+import { toNodeHandler } from "better-auth/node";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Auth routes
-app.post("/auth/signup", adaptApiHandler(auth.api.signUpEmail));
-app.post("/auth/login", adaptApiHandler(auth.api.signInEmail));
-app.get("/auth/session", adaptApiHandler(auth.api.getSession));
-app.post("/auth/logout", adaptApiHandler(auth.api.signOut));
+app.all("/api/auth/*splat", toNodeHandler(auth)); //For ExpressJS v5
+
+// Mount express json middleware after Better Auth handler
+// or only apply it to routes that don't interact with Better Auth
+app.use(express.json());
+// Configure CORS middleware
+// app.use(
+cors({
+  origin: "*", // Replace with your frontend's origin
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+});
 
 async function main() {
   app.listen(PORT, () => {
