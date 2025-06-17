@@ -1,6 +1,5 @@
 # Fidel_AI
 
-
 my-chatbot-app/
 ├── app/                          # Expo Router (App Directory)
 │   ├── (auth)/                   # Auth group routes
