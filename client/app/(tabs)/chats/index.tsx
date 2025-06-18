@@ -3,20 +3,22 @@ import axios, { isAxiosError } from "axios";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "./NavBar";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Colors } from "@/constants/Colors";
 
 // Add your Gemini API key here
 const GEMINI_API_KEY = "AIzaSyDZ_jY2AD0z5JLiIdDYPqt7sH_fxc9WQtI";
@@ -30,6 +32,12 @@ interface Message {
 
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
+  const { theme } = useTheme();
+
+  const backgroundColor = Colors[theme].background;
+  const textColor = Colors[theme].text;
+  const iconColor = Colors[theme].icon;
+  const tintColor = Colors[theme].tint;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -44,20 +52,10 @@ export default function ChatView() {
       const response = await axios.post(
         GEMINI_API_URL,
         {
-          contents: [
-            {
-              parts: [
-                {
-                  text: userMessage,
-                },
-              ],
-            },
-          ],
+          contents: [{ parts: [{ text: userMessage }] }],
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           timeout: 30000, // 30 second timeout
         }
       );
@@ -174,8 +172,31 @@ export default function ChatView() {
     ]);
   }, []);
 
+  // Theme-aware colors for chat bubbles
+  const getUserBubbleStyle = () => ({
+    backgroundColor: tintColor,
+  });
+
+  const getAiBubbleStyle = () => ({
+    backgroundColor: theme === "light" ? "#F3F4F6" : "#374151",
+  });
+
+  const getInputContainerStyle = () => ({
+    backgroundColor: backgroundColor,
+    borderTopColor: theme === "light" ? "#D1D5DB" : "#374151",
+  });
+
+  const getInputStyle = () => ({
+    backgroundColor: theme === "light" ? "#F9FAFB" : "#1F2937",
+    borderColor: theme === "light" ? "#D1D5DB" : "#4B5563",
+    color: textColor,
+  });
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      style={{ backgroundColor: backgroundColor }}
+      className="flex-1"
+    >
       <NavBar />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -184,7 +205,7 @@ export default function ChatView() {
       >
         <ScrollView
           ref={scrollViewRef}
-          className="flex-1 px-4 mb-16"
+          className="flex-1 py-4 px-2 mb-16"
           contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -199,17 +220,24 @@ export default function ChatView() {
               <View
                 className={`max-w-[80%] px-4 py-3 ${
                   msg.sender === "user"
-                    ? "bg-blue-500 rounded-l-2xl rounded-tr-2xl rounded-br-md"
-                    : "bg-gray-200 rounded-r-2xl rounded-tl-2xl rounded-bl-md"
+                    ? "rounded-l-xl rounded-tr-xl"
+                    : "rounded-r-xl rounded-tl-xl"
                 }`}
                 style={[
-                  msg.sender === "user" ? styles.userBubble : styles.aiBubble,
+                  msg.sender === "user"
+                    ? { ...styles.userBubble, ...getUserBubbleStyle() }
+                    : { ...styles.aiBubble, ...getAiBubbleStyle() },
                 ]}
               >
                 <Text
-                  className={`${
-                    msg.sender === "user" ? "text-white" : "text-black"
-                  }`}
+                  style={{
+                    color:
+                      msg.sender === "user"
+                        ? theme === "light"
+                          ? "#FFFFFF"
+                          : "#000000"
+                        : textColor,
+                  }}
                 >
                   {msg.text}
                 </Text>
@@ -219,17 +247,24 @@ export default function ChatView() {
 
           {isLoading && (
             <View className="flex-row justify-start my-1">
-              <View className="bg-gray-200 rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3">
-                <ActivityIndicator size="small" color="#666" />
+              <View
+                className="rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3"
+                style={getAiBubbleStyle()}
+              >
+                <ActivityIndicator
+                  size="small"
+                  color={theme === "light" ? "#666" : "#9BA1A6"}
+                />
               </View>
             </View>
           )}
         </ScrollView>
 
         <View
-          className="border-t border-gray-300 px-4 bg-white"
+          className="border-t px-4"
           style={[
             styles.inputContainer,
+            getInputContainerStyle(),
             Platform.OS === "android" &&
               keyboardHeight > 0 && {
                 bottom: keyboardHeight,
@@ -238,9 +273,10 @@ export default function ChatView() {
         >
           <View className="flex-row items-center space-x-3">
             <TextInput
-              className="flex-1 px-3 py-2 rounded-md border border-gray-300 bg-gray-50"
+              className="flex-1 px-3 py-2 rounded-md border"
+              style={getInputStyle()}
               placeholder="Ask anything..."
-              placeholderTextColor="#aaa"
+              placeholderTextColor={iconColor}
               value={input}
               onChangeText={setInput}
               returnKeyType="send"
@@ -249,13 +285,13 @@ export default function ChatView() {
             />
             <TouchableOpacity
               onPress={sendMessage}
-              className={`p-2 ${isLoading ? "opacity-50" : "active:opacity-80"}`}
+              className={`pl-2 ${isLoading ? "opacity-50" : "active:opacity-80"} `}
               disabled={isLoading}
             >
               <MaterialCommunityIcons
                 name="send"
-                size={24}
-                color={isLoading ? "#ccc" : "#007AFF"}
+                size={20}
+                color={isLoading ? iconColor : theme === "light" ? "black" : "white"}
               />
             </TouchableOpacity>
           </View>
@@ -295,4 +331,3 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 });
-
