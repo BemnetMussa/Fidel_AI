@@ -18,9 +18,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import axios, { isAxiosError } from "axios";
+import NavBar from "./NavBar";
 
 // Add your Gemini API key here
-const GEMINI_API_KEY = "YOUR_API_KEY";
+const GEMINI_API_KEY = "AIzaSyDZ_jY2AD0z5JLiIdDYPqt7sH_fxc9WQtI";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 interface Message {
@@ -108,7 +109,7 @@ export default function ChatView() {
 
       Alert.alert("Error", errorMessage);
 
-      // Add error message
+      // OPTIONAL: Add error message
       setMessages((prev) => [
         ...prev,
         {
@@ -182,19 +183,7 @@ export default function ChatView() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-row border-b border-gray-300 items-center justify-between px-4 py-3 bg-white">
-        <TouchableOpacity>
-          <Icon name="menu" size={24} />
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold">pAI</Text>
-        <TouchableOpacity>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=" + chatId }}
-            className="w-8 h-8 rounded-full"
-          />
-        </TouchableOpacity>
-      </View>
-
+      <NavBar />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -315,56 +304,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// This is Dummy data and will be replace with fetched user conversation
-const dummyMessages = [
-  { sender: "user", text: "Hello!" },
-  { sender: "ai", text: "Hi! How can I help you today?" },
-  { sender: "user", text: "Tell me a joke." },
-  {
-    sender: "ai",
-    text: "Why don't scientists trust atoms? Because they make up everything!",
-  },
-  { sender: "user", text: "What's the weather like today?" },
-  {
-    sender: "ai",
-    text: "I can't fetch real-time weather, but it's always sunny in here ☀️",
-  },
-  { sender: "user", text: "How do you define AI?" },
-  {
-    sender: "ai",
-    text: "AI, or Artificial Intelligence, refers to systems that mimic human intelligence.",
-  },
-  { sender: "user", text: "What's 24 multiplied by 17?" },
-  { sender: "ai", text: "24 × 17 is 408." },
-  { sender: "user", text: "Can you write me a haiku?" },
-  {
-    sender: "ai",
-    text: "Soft breeze through the trees,\nwhispers secrets to the leaves,\nnature's calm embrace.",
-  },
-  { sender: "user", text: "Who wrote 1984?" },
-  { sender: "ai", text: "1984 was written by George Orwell." },
-  { sender: "user", text: "Tell me a fun fact." },
-  { sender: "ai", text: "Octopuses have three hearts and blue blood!" },
-  { sender: "user", text: "Can you help me learn Spanish?" },
-  {
-    sender: "ai",
-    text: "Of course! Let's start with basics like 'Hola' for 'Hello'.",
-  },
-  { sender: "user", text: "What’s the capital of Japan?" },
-  { sender: "ai", text: "The capital of Japan is Tokyo." },
-  { sender: "user", text: "Recommend me a movie." },
-  {
-    sender: "ai",
-    text: "You might enjoy 'Inception' if you like sci-fi and mind-bending plots.",
-  },
-  { sender: "user", text: "What's the speed of light?" },
-  {
-    sender: "ai",
-    text: "The speed of light is approximately 299,792 kilometers per second.",
-  },
-  { sender: "user", text: "Can you summarize the news?" },
-  {
-    sender: "ai",
-    text: "I can't pull live news, but I can explain recent trends or history if you'd like!",
-  },
-];
