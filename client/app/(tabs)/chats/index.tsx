@@ -1,23 +1,21 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import axios, { isAxiosError } from "axios";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Alert,
-  ActivityIndicator,
+    ActivityIndicator,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/Feather";
-import axios, { isAxiosError } from "axios";
 import NavBar from "./NavBar";
 
 // Add your Gemini API key here
@@ -127,7 +125,6 @@ export default function ChatView() {
     if (input.trim()) {
       const userMessage = input.trim();
 
-      // Add user message immediately
       const newUserMessage: Message = {
         sender: "user",
         text: userMessage,
@@ -137,19 +134,16 @@ export default function ChatView() {
       setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
 
-      // Send to Gemini API
       await sendMessageToGemini(userMessage);
     }
   };
 
-  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
 
-  // This is for the Input to come up with the keyboard
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
@@ -170,7 +164,6 @@ export default function ChatView() {
     };
   }, []);
 
-  // Initialize with a welcome message
   useEffect(() => {
     setMessages([
       {
@@ -224,7 +217,6 @@ export default function ChatView() {
             </View>
           ))}
 
-          {/* Loading indicator */}
           {isLoading && (
             <View className="flex-row justify-start my-1">
               <View className="bg-gray-200 rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3">
