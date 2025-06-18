@@ -13,17 +13,23 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     // REPLACE WITH YOUR SOCIAL PROVIDERS FACEBOOK AND GOOGLE
-    // socialProviders: {
-    //     github: {
-    //        clientId: process.env.GITHUB_CLIENT_ID as string,
-    //        clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-    //     },
-    // },
+    socialProviders: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID as string,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      },
+    },
   },
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
-        // Implement the sendVerificationOTP method to send the OTP to the user's email address
+        if (type === "sign-in") {
+          // Send the OTP for sign-in
+        } else if (type === "email-verification") {
+          // Send the OTP for email verification
+        } else {
+          // Send the OTP for password reset
+        }
       },
     }),
   ],
