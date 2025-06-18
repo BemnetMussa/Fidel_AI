@@ -1,89 +1,113 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
-import { useRouter } from "expo-router"
-import { AuthHeader } from "@/components/auth/AuthHeader"
-import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { useState } from "react";
+import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { useRouter } from "expo-router";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authClient } from "@/lib/auth-client";
+
+const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
+
+type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordScreen() {
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    newPassword: "",
-    confirmPassword: "",
-  })
-  const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const validateForm = () => {
-    const newErrors: { newPassword?: string; confirmPassword?: string } = {}
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<ResetPasswordData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-    if (!formData.newPassword) {
-      newErrors.newPassword = "New password is required"
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = "Password must be at least 6 characters"
-    }
+  const newPassword = watch("newPassword");
+  const confirmPassword = watch("confirmPassword");
 
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password"
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleResetPassword = async () => {
-    if (!validateForm()) return
-
-    setIsLoading(true)
+  const handleResetPassword = async (data: ResetPasswordData) => {
+    setIsLoading(true);
     try {
-      // TODO: Implement actual password reset logic
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
-      router.replace("/(auth)/login")
+      await authClient.emailOtp.resetPassword(
+        {
+          email: "user-email@email.com", // Replace with actual email
+          otp: "123456", // Replace with actual OTP
+          password: data.newPassword,
+        },
+        {
+          onSuccess: () => {
+            router.replace("/(auth)/login");
+          },
+          onError: ({ error }) => {
+            console.error("Reset error:", error);
+          },
+        }
+      );
     } catch (error) {
-      console.error("Reset password error:", error)
+      console.error("Reset password error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const updateFormData = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
-    }
-  }
+  };
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <AuthHeader title="Reset Your Password" showBackButton />
 
         <View className="px-6 pb-8">
           <Input
             placeholder="New Password"
-            value={formData.newPassword}
-            onChangeText={(value) => updateFormData("newPassword", value)}
-            error={errors.newPassword}
+            value={newPassword}
+            onChangeText={(val) =>
+              setValue("newPassword", val, { shouldValidate: true })
+            }
+            error={errors.newPassword?.message}
             isPassword
             leftIcon="lock-closed"
           />
 
           <Input
             placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChangeText={(value) => updateFormData("confirmPassword", value)}
-            error={errors.confirmPassword}
+            value={confirmPassword}
+            onChangeText={(val) =>
+              setValue("confirmPassword", val, { shouldValidate: true })
+            }
+            error={errors.confirmPassword?.message}
             isPassword
             leftIcon="lock-closed"
           />
 
-          <Button title="Reset" onPress={handleResetPassword} loading={isLoading} className="mt-2" />
+          <Button
+            title="Reset"
+            onPress={handleSubmit(handleResetPassword)}
+            loading={isLoading}
+            className="mt-2"
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }

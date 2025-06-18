@@ -1,116 +1,172 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
-import { useRouter } from "expo-router"
-import { AuthHeader } from "@/components/auth/AuthHeader"
-import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
-import { SocialButtons } from "@/components/auth/SocialButtons"
+import { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { SocialButtons } from "@/components/auth/SocialButtons";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authClient } from "@/lib/auth-client";
+import { BadgeAlertIcon } from "lucide-react-native";
+
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Full name should at least be 3 character" }),
+  email: z.string().email({ message: "Invalid email format" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function RegisterScreen() {
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  })
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const validateForm = () => {
-    const newErrors: { name?: string; email?: string; password?: string } = {}
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
-    }
-
-    if (!formData.email) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email"
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleRegister = async () => {
-    if (!validateForm()) return
-
-    setIsLoading(true)
+  const onSubmit = async (data: FormData) => {
+    setIsLoading(true);
     try {
-      // TODO: Implement actual registration logic
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
-      router.push("/(auth)/verify-email")
+      await authClient.signUp.email(
+        {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        },
+        {
+          onSuccess: async () => {
+            await authClient.emailOtp.sendVerificationOtp({
+              email: data.email,
+              type: "email-verification",
+            });
+            router.push({
+              pathname: "/(auth)/verify-email",
+              params: { email: data.email },
+            });
+          },
+          onError: ({ error }) => {
+            setError(error.message);
+          },
+        }
+      );
     } catch (error) {
-      console.error("Registration error:", error)
+      console.error("Registration error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSocialLogin = (provider: string) => {
-    console.log(`Register with ${provider}`)
+    console.log(`Register with ${provider}`);
     // TODO: Implement social registration
-  }
-
-  const updateFormData = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
-    }
-  }
+  };
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <AuthHeader title="Create your Account" showBackButton />
 
         <View className="px-6 pb-8">
-          <Input
-            placeholder="Full name"
-            value={formData.name}
-            onChangeText={(value) => updateFormData("name", value)}
-            error={errors.name}
-            leftIcon="person"
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Full name"
+                value={value}
+                onChangeText={onChange}
+                error={errors.name?.message}
+                leftIcon="person"
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Enter Your Email"
+                value={value}
+                onChangeText={onChange}
+                error={errors.email?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                leftIcon="mail"
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Password"
+                value={value}
+                onChangeText={onChange}
+                error={errors.password?.message}
+                isPassword
+                leftIcon="lock-closed"
+              />
+            )}
           />
 
-          <Input
-            placeholder="Enter Your Email"
-            value={formData.email}
-            onChangeText={(value) => updateFormData("email", value)}
-            error={errors.email}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon="mail"
-          />
+          {error && (
+            <View className="flex-row items-center space-x-2 p-3 rounded-md bg-red-100 border border-red-400 mt-4">
+              <BadgeAlertIcon className="h-5 w-5 text-red-500" />
+              <Text className="text-red-700 font-medium">{error}</Text>
+            </View>
+          )}
 
-          <Input
-            placeholder="Password"
-            value={formData.password}
-            onChangeText={(value) => updateFormData("password", value)}
-            error={errors.password}
-            isPassword
-            leftIcon="lock-closed"
+          <Button
+            title="Register"
+            onPress={handleSubmit(onSubmit)}
+            loading={isLoading}
+            className="mb-6"
           />
-
-          <Button title="Register" onPress={handleRegister} loading={isLoading} className="mb-6" />
 
           <View className="items-center mb-4">
-            <Text className="text-sm text-gray-500 mb-2">Already Have An Account?</Text>
+            <Text className="text-sm text-gray-500 mb-2">
+              Already Have An Account?
+            </Text>
             <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-              <Text className="text-sm text-gray-900 font-semibold">Sign in</Text>
+              <Text className="text-sm text-gray-900 font-semibold">
+                Sign in
+              </Text>
             </TouchableOpacity>
           </View>
 
-          <Text className="text-center text-gray-500 text-sm mb-4">Continue With Accounts</Text>
+          <Text className="text-center text-gray-500 text-sm mb-4">
+            Continue With Accounts
+          </Text>
 
           <SocialButtons
             onGooglePress={() => handleSocialLogin("Google")}
@@ -119,5 +175,5 @@ export default function RegisterScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
