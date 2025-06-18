@@ -18,7 +18,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client";
-import { BadgeAlert, BadgeAlertIcon } from "lucide-react-native";
+import { BadgeAlertIcon } from "lucide-react-native";
 
 const formSchema = z.object({
   name: z
@@ -60,8 +60,15 @@ export default function RegisterScreen() {
           password: data.password,
         },
         {
-          onSuccess: () => {
-            router.push("/(auth)/verify-email");
+          onSuccess: async () => {
+            await authClient.emailOtp.sendVerificationOtp({
+              email: data.email,
+              type: "email-verification",
+            });
+            router.push({
+              pathname: "/(auth)/verify-email",
+              params: { email: data.email },
+            });
           },
           onError: ({ error }) => {
             setError(error.message);
@@ -133,11 +140,9 @@ export default function RegisterScreen() {
           />
 
           {error && (
-            <View className="bg-destructive/20 border-2 border-red-500">
-              <BadgeAlertIcon className="!h-5 !w-5 !text-destructive" />
-              <Text className="text-md text-gray-900 font-semibold">
-                {error}
-              </Text>
+            <View className="flex-row items-center space-x-2 p-3 rounded-md bg-red-100 border border-red-400 mt-4">
+              <BadgeAlertIcon className="h-5 w-5 text-red-500" />
+              <Text className="text-red-700 font-medium">{error}</Text>
             </View>
           )}
 
