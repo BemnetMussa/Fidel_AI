@@ -61,7 +61,9 @@ export default function RegisterScreen() {
         },
         {
           onSuccess: async () => {
+            console.log("Registration successful, sending verification email");
             await authClient.emailOtp.sendVerificationOtp({
+            
               email: data.email,
               type: "email-verification",
             });
@@ -71,6 +73,7 @@ export default function RegisterScreen() {
             });
           },
           onError: ({ error }) => {
+            console.log("Registration error:", error);
             setError(error.message);
           },
         }

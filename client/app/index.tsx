@@ -15,7 +15,7 @@ export default function SplashScreen() {
       const isAuthenticated = false // This should come from your auth state
 
       if (isAuthenticated) {
-        router.replace("/(tabs)/chats")
+        router.replace("/chats")
       } else {
         router.replace("/welcome")
       }
