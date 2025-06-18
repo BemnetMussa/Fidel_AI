@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
+import { prisma } from "./lib/auth"; // adjust the path if needed
+
 import cors from "cors";
 
 dotenv.config();
@@ -26,7 +28,10 @@ async function main() {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
+
 }
+
+main();
 
 main().catch((e) => {
   console.error(e);

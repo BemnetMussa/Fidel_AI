@@ -56,7 +56,7 @@ export default function LoginScreen() {
         },
         {
           onSuccess: () => {
-            router.replace("/(tabs)/chats");
+            router.replace("/chats");
           },
           onError: ({ error }) => {
             setError(error.message);
