@@ -1,70 +1,92 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
-import { useRouter } from "expo-router"
-import { AuthHeader } from "@/components/auth/AuthHeader"
-import { Input } from "@/components/ui/Input"
-import { Button } from "@/components/ui/Button"
+import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { useRouter } from "expo-router";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { z } from "zod";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
+
+const emailForgotSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+});
+
+type ForgotData = z.infer<typeof emailForgotSchema>;
 
 export default function ForgotPasswordScreen() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [error, setError] = useState("");
 
-  const validateEmail = (email: string) => {
-    return /\S+@\S+\.\S+/.test(email)
-  }
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotData>({
+    resolver: zodResolver(emailForgotSchema),
+    defaultValues: { email: "" },
+  });
 
-  const handleSendOTP = async () => {
-    if (!email) {
-      setError("Email is required")
-      return
-    }
-
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address")
-      return
-    }
-
-    setError("")
-    setIsLoading(true)
-
+  const onSubmit = async ({ email }: ForgotData) => {
     try {
-      // TODO: Implement actual forgot password logic
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate API call
-      router.push("/(auth)/verify-email")
+      await authClient.emailOtp.sendVerificationOtp(
+        {
+          email: "user-email@email.com",
+          type: "forget-password", // or "email-verification", ""
+        },
+        {
+          onSuccess: (data) => {
+            router.push({
+              pathname: "/(auth)/verify-email",
+              params: { email }, // pass email to the next screen
+            });
+          },
+          onError: ({ error }) => {
+            setError(error.message);
+          },
+        }
+      );
     } catch (error) {
-      console.error("Forgot password error:", error)
-      setError("Failed to send reset email. Please try again.")
-    } finally {
-      setIsLoading(false)
+      console.error("Failed to send reset email:", error);
     }
-  }
+  };
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      className="flex-1 bg-white"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <AuthHeader title="Forgot Password" showBackButton />
 
         <View className="px-6 pb-8">
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value)
-              if (error) setError("")
-            }}
-            error={error}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon="mail"
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { value, onChange } }) => (
+              <Input
+                placeholder="Email"
+                value={value}
+                onChangeText={onChange}
+                error={errors.email?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                leftIcon="mail"
+              />
+            )}
           />
 
-          <Button title="Send" onPress={handleSendOTP} loading={isLoading} className="mt-2" />
+          <Button
+            title="Send"
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            className="mt-2"
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }

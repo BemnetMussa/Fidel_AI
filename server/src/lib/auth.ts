@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
+import { emailOTP } from "better-auth/plugins";
+import { sendEmail } from "./sendEmail"; // adjust path if needed
 
 export const prisma = new PrismaClient().$extends(withAccelerate());
 
@@ -11,13 +13,87 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // REPLACE WITH YOUR SOCIAL PROVIDERS FACEBOOK AND GOOGLE
-      // socialProviders: {  
-      //     github: { 
-      //        clientId: process.env.GITHUB_CLIENT_ID as string, 
-      //        clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
-      //     }, 
-      // },  
+    autoSignIn: false,
   },
+  socialProviders: {
+    // Uncomment and fill to enable social providers
+    // github: {
+    //   clientId: process.env.GITHUB_CLIENT_ID!,
+    //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    // },
+  },
+  plugins: [
+    emailOTP({
+      otpLength: 4, // 4 digit OTP
+      expiresIn: 300, // 5 minutes
+      async sendVerificationOTP({ email, otp, type }) {
+        console.log("[OTP SEND] Called with type:", type, "email:", email);
+        try {
+          if (type === "sign-in") {
+            console.log("[OTP SEND] Sign-in OTP not implemented.");
+          } else if (type === "email-verification") {
+            console.log("[OTP SEND] Sending verification OTP:", otp);
+            await sendEmail({
+              to: email,
+              subject: "Verify Your Email Address",
+              text: `
+Hi there,
+
+To verify your email address, use this OTP:
+
+🔐 ${otp}
+
+This code expires in 5 minutes.
+
+If you didn’t request this, ignore this email.
+
+Thanks,  
+Fidel AI
+              `,
+            });
+            console.log("[OTP SEND] Verification email sent successfully.");
+          } else {
+            const subject = "Reset Your Password";
+            const text = `
+Hi,
+
+We received a request to reset the password for your account.
+
+Use the following code to reset your password:
+
+🔐 Your password reset code: ${otp}
+
+This code will expire in 5 minutes. If you did not request a password reset, please ignore this email.
+
+Thanks,
+Fidel AI
+            `;
+
+            await sendEmail({ to: email, subject, text });
+            console.log("[OTP SEND] Password reset email sent successfully.");
+          }
+        } catch (error) {
+          console.error("[OTP SEND] Failed to send OTP email:", error);
+        }
+      },
+    }),
+  ],
   secret: process.env.BETTER_AUTH!,
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          console.log("Creating user with:", user);
+          return { data: user };
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async (account) => {
+          console.log("🟢 Account created successfully:", account);
+        },
+      },
+    },
+  },
 });
