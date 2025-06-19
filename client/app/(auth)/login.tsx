@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AuthHeader } from "@/components/auth/AuthHeader";
@@ -19,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { authClient } from "@/lib/auth-client";
 import { BadgeAlertIcon } from "lucide-react-native";
+import Toast from "react-native-toast-message";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email format" }),
@@ -56,6 +58,12 @@ export default function LoginScreen() {
         },
         {
           onSuccess: () => {
+            (global as any).showAppToast({
+              message: "Logged in successfully!",
+              type: "success",
+              duration: 3000,
+            });
+
             router.replace("/chats");
           },
           onError: ({ error }) => {

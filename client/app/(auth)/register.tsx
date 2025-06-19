@@ -63,7 +63,6 @@ export default function RegisterScreen() {
           onSuccess: async () => {
             console.log("Registration successful, sending verification email");
             await authClient.emailOtp.sendVerificationOtp({
-            
               email: data.email,
               type: "email-verification",
             });
