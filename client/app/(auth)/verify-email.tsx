@@ -54,7 +54,7 @@ export default function VerifyEmailScreen() {
       if (error) {
         Alert.alert("Verification Failed", error.message);
       } else {
-        router.replace("/");
+        router.replace("/chats");
       }
     } catch (error) {
       Alert.alert("Error", "Invalid OTP");

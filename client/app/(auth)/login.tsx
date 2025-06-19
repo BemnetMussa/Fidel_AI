@@ -18,7 +18,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { authClient } from "@/lib/auth-client";
-import { BadgeAlert } from "lucide-react-native";
+import { BadgeAlertIcon } from "lucide-react-native";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email format" }),
@@ -114,12 +114,10 @@ export default function LoginScreen() {
             )}
           />
 
-          {true && (
-            <View className="bg-destructive/20 border-2 border-red-500">
-              <BadgeAlert className="!h-5 !w-5 !text-destructive" />
-              <Text className="text-md text-gray-900 font-semibold">
-                {error}
-              </Text>
+          {error && (
+            <View className="flex-row items-center space-x-2 p-3 rounded-md bg-red-100 border border-red-400 mt-4">
+              <BadgeAlertIcon className="h-5 w-5 text-red-500" />
+              <Text className="text-red-700 font-medium">{error}</Text>
             </View>
           )}
 
