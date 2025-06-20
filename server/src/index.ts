@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
-import { prisma } from "./lib/auth"; // adjust the path if needed
 
 import cors from "cors";
 
@@ -17,7 +16,6 @@ app.all("/api/auth/*splat", toNodeHandler(auth)); //For ExpressJS v5
 // or only apply it to routes that don't interact with Better Auth
 app.use(express.json());
 // Configure CORS middleware
-// app.use(
 cors({
   origin: "*", // Replace with your frontend's origin
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -28,7 +26,6 @@ async function main() {
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
-
 }
 
 main();
