@@ -174,7 +174,7 @@ export default function ChatView() {
 
   // Theme-aware colors for chat bubbles
   const getUserBubbleStyle = () => ({
-    backgroundColor: "#A9E991",
+    backgroundColor: theme === "light" ? "#A9E991" : "#2f2f2f",
   });
 
   const getAiBubbleStyle = () => ({
@@ -187,8 +187,8 @@ export default function ChatView() {
   });
 
   const getInputStyle = () => ({
-    backgroundColor: theme === "light" ? "#F9FAFB" : "#1F2937",
-    borderColor: theme === "light" ? "#D1D5DB" : "#4B5563",
+    backgroundColor: theme === "light" ? "#F9FAFB" : "#2f2f2f",
+    borderColor: theme === "light" ? "#D1D5DB" : "#4B556",
     color: textColor,
   });
 
@@ -219,9 +219,7 @@ export default function ChatView() {
             >
               <View
                 className={`max-w-[95%] px-4 py-3 ${
-                  msg.sender === "user"
-                    ? "rounded-l-2xl rounded-r-2xl"
-                    : ""
+                  msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
                 }`}
                 style={[
                   msg.sender === "user"
@@ -235,7 +233,7 @@ export default function ChatView() {
                       msg.sender === "user"
                         ? theme === "light"
                           ? "#000000"
-                          : "#000000"
+                          : "white"
                         : textColor,
                   }}
                 >
@@ -291,7 +289,9 @@ export default function ChatView() {
               <MaterialCommunityIcons
                 name="send"
                 size={20}
-                color={isLoading ? iconColor : theme === "light" ? "black" : "white"}
+                color={
+                  isLoading ? iconColor : theme === "light" ? "black" : "white"
+                }
               />
             </TouchableOpacity>
           </View>
@@ -319,6 +319,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
+    color: "white"
   },
   aiBubble: {
     // shadowColor: "#000",
