@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
 import chatRouter from "./routes/chatsRouter";
+import messageRouter from "./routes/messageRoute";
 
 import cors from "cors";
 
@@ -24,6 +25,7 @@ cors({
 });
 
 app.use("/api", chatRouter);
+app.use("/api", messageRouter);
 
 async function main() {
   app.listen(PORT, () => {
