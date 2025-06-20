@@ -14,11 +14,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ToastAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "./NavBar";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
+import * as Clipboard from "expo-clipboard";
+import Icon from "react-native-vector-icons/Ionicons";
 
 // Add your Gemini API key here
 const GEMINI_API_KEY = "AIzaSyDZ_jY2AD0z5JLiIdDYPqt7sH_fxc9WQtI";
@@ -70,7 +73,6 @@ export default function ChatView() {
         },
       ];
 
-      // Add all previous messages (excluding the initial greeting and error messages)
       const filteredMessages = messages.filter(
         (msg) =>
           !(
@@ -83,7 +85,6 @@ export default function ChatView() {
           )
       );
 
-      // Convert to Gemini format
       for (const msg of filteredMessages) {
         conversationHistory.push({
           role: msg.sender === "user" ? "user" : "model",
@@ -91,14 +92,10 @@ export default function ChatView() {
         });
       }
 
-      // Add the current user message
       conversationHistory.push({
         role: "user",
         parts: [{ text: userMessage }],
       });
-
-      console.log("Conversation History Length:", conversationHistory.length);
-      console.log("Sending to Gemini:", conversationHistory.slice(-4)); // Log last 4 messages
 
       const response = await axios.post(
         GEMINI_API_URL,
@@ -118,8 +115,6 @@ export default function ChatView() {
           timeout: 30000,
         }
       );
-
-      console.log("Gemini Response:", response.data);
 
       if (
         response.data.candidates &&
@@ -203,6 +198,15 @@ export default function ChatView() {
     }
   };
 
+  const handleCopy = (text: string) => {
+    Clipboard.setStringAsync(text);
+    if (Platform.OS === "android") {
+      ToastAndroid.show("Copied to clipboard!", ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Copied to clipboard!");
+    }
+  };
+
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
@@ -280,12 +284,12 @@ export default function ChatView() {
           {messages.map((msg, idx) => (
             <View
               key={idx}
-              className={`flex-row my-1 ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
+              className={`flex-col my-1 ${
+                msg.sender === "user" ? "items-end" : "items-start"
               }`}
             >
               <View
-                className={`max-w-[95%] px-4 py-3 ${
+                className={`max-w-[95%] px-2 py-3 ${
                   msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
                 }`}
                 style={[
@@ -304,9 +308,20 @@ export default function ChatView() {
                         : textColor,
                   }}
                 >
-                  {msg.text}
+                  {msg.text.trim()}
                 </Text>
               </View>
+
+              <TouchableOpacity
+                onPress={() => handleCopy(msg.text)}
+                className={` ${msg.sender === "user" ? "mt-2 self-end pr-2" : "self-start pl-2"}`}
+              >
+                <Icon
+                  name="copy-outline"
+                  size={13}
+                  color={theme === "light" ? "black" : "white"}
+                />
+              </TouchableOpacity>
             </View>
           ))}
 
