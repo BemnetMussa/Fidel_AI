@@ -311,17 +311,41 @@ export default function ChatView() {
                   {msg.text.trim()}
                 </Text>
               </View>
-
-              <TouchableOpacity
-                onPress={() => handleCopy(msg.text)}
-                className={` ${msg.sender === "user" ? "mt-2 self-end pr-2" : "self-start pl-2"}`}
-              >
-                <Icon
-                  name="copy-outline"
-                  size={13}
-                  color={theme === "light" ? "black" : "white"}
-                />
-              </TouchableOpacity>
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={() => handleCopy(msg.text)}
+                  className={` ${msg.sender === "user" ? "mt-2 self-end pr-2" : "self-start pl-2"}`}
+                >
+                  <Icon
+                    name="copy-outline"
+                    size={13}
+                    color={theme === "light" ? "black" : "white"}
+                  />
+                </TouchableOpacity>
+                {msg.sender === "user" ? (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="mt-2 self-end pr-2"
+                  >
+                    <Icon
+                      name="pencil-outline"
+                      size={13}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="self-start pl-2"
+                  >
+                    <Icon
+                      name="volume-high-outline"
+                      size={14}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           ))}
 

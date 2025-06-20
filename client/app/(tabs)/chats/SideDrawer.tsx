@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Animated,
   Dimensions,
@@ -15,6 +15,13 @@ import Icon from "react-native-vector-icons/Feather";
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
 
+interface Chat {
+  id: string;
+  title: string;
+  lastMessage?: string;
+  updatedAt: Date;
+}
+
 interface SideDrawerProps {
   isVisible: boolean;
   onClose: () => void;
@@ -27,24 +34,73 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   slideAnim,
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
-  const tintColor = Colors[theme].tint;
+
+  useEffect(() => {
+    loadChats();
+  }, []);
+
+  const loadChats = async () => {
+    setLoading(true);
+    try {
+      // Dummy data - replace with actual API call
+      const mockChats: Chat[] = [
+        {
+          id: "1",
+          title: "What is coding?",
+          lastMessage: "Coding is the process of creating instructions...",
+          updatedAt: new Date(),
+        },
+        {
+          id: "2",
+          title: "What is programming?",
+          lastMessage: "Programming involves writing code...",
+          updatedAt: new Date(),
+        },
+      ];
+
+      // Simulate API delay
+      setTimeout(() => {
+        setChats(mockChats);
+        setLoading(false);
+      }, 500);
+
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/chats');
+      // const chatsData = await response.json();
+      // setChats(chatsData);
+    } catch (error) {
+      console.error("Error loading chats:", error);
+      setLoading(false);
+    }
+  };
 
   const handleNewChat = () => {
     console.log("Creating new chat");
+    // TODO: Create new chat and add to state
     onClose();
   };
 
-  const handleChatPress = (chatTitle: string) => {
-    console.log(`Opening chat: ${chatTitle}`);
+  const handleChatPress = (chat: Chat) => {
+    console.log(`Opening chat: ${chat.title}`);
+    // TODO: Navigate to chat or load chat messages
     onClose();
+  };
+
+  const handleChatOptions = (chat: Chat) => {
+    console.log(`Opening options for chat: ${chat.title}`);
+    // TODO: Show chat options (rename, delete, etc.)
   };
 
   const handleClearConversations = () => {
     console.log("Clearing conversations");
+    setChats([]); 
+    // TODO: Call API to clear conversations
     onClose();
   };
 
@@ -62,6 +118,34 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     console.log("Logging out");
     onClose();
   };
+
+  const renderChatItem = (chat: Chat) => (
+    <TouchableOpacity
+      key={chat.id}
+      onPress={() => handleChatPress(chat)}
+      className="flex-row items-center justify-between px-4 py-3"
+    >
+      <View className="flex-row items-center flex-1">
+        <Icon name="message-circle" size={16} color={iconColor} />
+        <Text
+          style={{ color: textColor }}
+          className="ml-3 text-base flex-1"
+          numberOfLines={1}
+        >
+          {chat.title}
+        </Text>
+      </View>
+      <View className="flex-row items-center">
+        <TouchableOpacity
+          className="p-1 mr-2"
+          onPress={() => handleChatOptions(chat)}
+        >
+          <Icon name="more-horizontal" size={16} color={iconColor} />
+        </TouchableOpacity>
+        <Icon name="chevron-right" size={14} color={iconColor} />
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <>
@@ -143,49 +227,21 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                 Chats
               </Text>
 
-              <TouchableOpacity
-                onPress={() => handleChatPress("What is coding?")}
-                className="flex-row items-center justify-between px-4 py-3"
-              >
-                <View className="flex-row items-center flex-1">
-                  <Icon name="message-circle" size={16} color={iconColor} />
-                  <Text
-                    style={{ color: textColor }}
-                    className="ml-3 text-base flex-1"
-                    numberOfLines={1}
-                  >
-                    What is coding?
+              {loading ? (
+                <View className="px-4 py-3">
+                  <Text style={{ color: iconColor }} className="text-sm">
+                    Loading chats...
                   </Text>
                 </View>
-                <View className="flex-row items-center">
-                  <TouchableOpacity className="p-1 mr-2">
-                    <Icon name="more-horizontal" size={16} color={iconColor} />
-                  </TouchableOpacity>
-                  <Icon name="chevron-right" size={14} color={iconColor} />
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleChatPress("What is programming?")}
-                className="flex-row items-center justify-between px-4 py-3"
-              >
-                <View className="flex-row items-center flex-1">
-                  <Icon name="message-circle" size={16} color={iconColor} />
-                  <Text
-                    style={{ color: textColor }}
-                    className="ml-3 text-base flex-1"
-                    numberOfLines={1}
-                  >
-                    What is programming?
+              ) : chats.length > 0 ? (
+                chats.map(renderChatItem)
+              ) : (
+                <View className="px-4 py-3">
+                  <Text style={{ color: iconColor }} className="text-sm">
+                    No chats yet. Start a new conversation!
                   </Text>
                 </View>
-                <View className="flex-row items-center">
-                  <TouchableOpacity className="p-1 mr-2">
-                    <Icon name="more-horizontal" size={16} color={iconColor} />
-                  </TouchableOpacity>
-                  <Icon name="chevron-right" size={14} color={iconColor} />
-                </View>
-              </TouchableOpacity>
+              )}
             </View>
 
             <View style={{ flex: 1 }} />
