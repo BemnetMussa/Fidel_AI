@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthenticatedRequest } from "../types/express";
-import { getSession } from "better-auth";
+import { auth } from "../lib/auth";
 
 export const requireAuth = async (
   req: Request,
@@ -17,7 +17,24 @@ export const requireAuth = async (
 
     const token = authHeader.split(" ")[1];
 
-    const session = await getSession(token);
+    // Convert req.headers to Headers
+    const headers = new Headers();
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value) {
+        if (Array.isArray(value)) {
+          value.forEach((v) => headers.append(key, v));
+        } else {
+          headers.append(key, value);
+        }
+      }
+    }
+
+    const session = await auth.api.getSession({
+      query: {
+        disableCookieCache: true,
+      },
+      headers, // Pass the Headers object
+    });
 
     if (!session || !session.user || !session.user.id) {
       res.status(401).json({ error: "Invalid token" });
