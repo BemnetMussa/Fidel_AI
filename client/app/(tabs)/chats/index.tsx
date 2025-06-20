@@ -49,16 +49,77 @@ export default function ChatView() {
     try {
       setIsLoading(true);
 
+      // Build the complete conversation history for context
+      // Start with a system message to establish the AI's awareness of conversation continuity
+      const conversationHistory = [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "You are an AI assistant that can remember and reference our conversation history. Please maintain context throughout our chat.",
+            },
+          ],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              text: "I understand. I will maintain context and can reference our previous conversation when needed. How can I help you?",
+            },
+          ],
+        },
+      ];
+
+      // Add all previous messages (excluding the initial greeting and error messages)
+      const filteredMessages = messages.filter(
+        (msg) =>
+          !(
+            msg.sender === "ai" &&
+            msg.text.includes("Hi! I'm your AI assistant")
+          ) &&
+          !(
+            msg.sender === "ai" &&
+            msg.text.includes("Sorry, I'm having trouble")
+          )
+      );
+
+      // Convert to Gemini format
+      for (const msg of filteredMessages) {
+        conversationHistory.push({
+          role: msg.sender === "user" ? "user" : "model",
+          parts: [{ text: msg.text }],
+        });
+      }
+
+      // Add the current user message
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: userMessage }],
+      });
+
+      console.log("Conversation History Length:", conversationHistory.length);
+      console.log("Sending to Gemini:", conversationHistory.slice(-4)); // Log last 4 messages
+
       const response = await axios.post(
         GEMINI_API_URL,
         {
-          contents: [{ parts: [{ text: userMessage }] }],
+          contents: conversationHistory,
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            topP: 0.95,
+            topK: 40,
+          },
         },
         {
-          headers: { "Content-Type": "application/json" },
-          timeout: 30000, // 30 second timeout
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
         }
       );
+
+      console.log("Gemini Response:", response.data);
 
       if (
         response.data.candidates &&
@@ -76,6 +137,7 @@ export default function ChatView() {
           },
         ]);
       } else {
+        console.error("Invalid Gemini Response Structure:", response.data);
         throw new Error("Invalid response from Gemini API");
       }
     } catch (error) {
@@ -84,8 +146,14 @@ export default function ChatView() {
       let errorMessage =
         "Sorry, I'm having trouble responding right now. Please try again.";
 
-      // Type guard for axios errors
       if (isAxiosError(error)) {
+        console.error("Axios Error Details:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          code: error.code,
+        });
+
         if (error.code === "ECONNABORTED") {
           errorMessage =
             "Request timed out. Please check your connection and try again.";
@@ -98,14 +166,13 @@ export default function ChatView() {
           errorMessage = "Access forbidden. Please check your API permissions.";
         } else if (error.response && error.response.status >= 500) {
           errorMessage = "Server error. Please try again later.";
+        } else if (error.response?.data?.error?.message) {
+          errorMessage = error.response.data.error.message;
         }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
       }
 
       Alert.alert("Error", errorMessage);
 
-      // OPTIONAL: Add error message
       setMessages((prev) => [
         ...prev,
         {
