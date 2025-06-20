@@ -3,6 +3,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import React, { useState } from "react";
 import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import SideDrawer from "./SideDrawer"; // Import the SideDrawer component
 
 type AppRoutes =
   | ""
@@ -18,13 +19,14 @@ type AppRoutes =
 const NavBar = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [dropdownAnim] = useState(new Animated.Value(0));
+  const [sideDrawerVisible, setSideDrawerVisible] = useState(false);
+  const [slideAnim] = useState(new Animated.Value(0));
   const { theme, toggleTheme } = useTheme();
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
 
-  // Avatar Dropdown
   const toggleDropdown = () => {
     if (dropdownVisible) {
       Animated.timing(dropdownAnim, {
@@ -40,6 +42,23 @@ const NavBar = () => {
         useNativeDriver: true,
       }).start();
     }
+  };
+
+  const openSideDrawer = () => {
+    setSideDrawerVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeSideDrawer = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setSideDrawerVisible(false));
   };
 
   const handleLogoPress = () => {
@@ -67,13 +86,8 @@ const NavBar = () => {
         }}
         className="flex-row border-b items-center justify-between px-4 py-3"
       >
-        <TouchableOpacity>
-          <Icon
-            name="menu"
-            size={24}
-            color={iconColor}
-            onPress={() => console.log("Hamburger is clicked")}
-          />
+        <TouchableOpacity onPress={openSideDrawer}>
+          <Icon name="menu" size={24} color={iconColor} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => handleLogoPress()}>
@@ -177,6 +191,12 @@ const NavBar = () => {
           className="absolute inset-0 z-40"
         />
       )}
+
+      <SideDrawer
+        isVisible={sideDrawerVisible}
+        onClose={closeSideDrawer}
+        slideAnim={slideAnim}
+      />
     </>
   );
 };
