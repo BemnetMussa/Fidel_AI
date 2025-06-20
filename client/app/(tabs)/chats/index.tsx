@@ -174,11 +174,11 @@ export default function ChatView() {
 
   // Theme-aware colors for chat bubbles
   const getUserBubbleStyle = () => ({
-    backgroundColor: tintColor,
+    backgroundColor: "#A9E991",
   });
 
   const getAiBubbleStyle = () => ({
-    backgroundColor: theme === "light" ? "#F3F4F6" : "#374151",
+    backgroundColor: theme === "light" ? "white" : "",
   });
 
   const getInputContainerStyle = () => ({
@@ -218,10 +218,10 @@ export default function ChatView() {
               }`}
             >
               <View
-                className={`max-w-[80%] px-4 py-3 ${
+                className={`max-w-[95%] px-4 py-3 ${
                   msg.sender === "user"
-                    ? "rounded-l-xl rounded-tr-xl"
-                    : "rounded-r-xl rounded-tl-xl"
+                    ? "rounded-l-2xl rounded-r-2xl"
+                    : ""
                 }`}
                 style={[
                   msg.sender === "user"
@@ -234,7 +234,7 @@ export default function ChatView() {
                     color:
                       msg.sender === "user"
                         ? theme === "light"
-                          ? "#FFFFFF"
+                          ? "#000000"
                           : "#000000"
                         : textColor,
                   }}
@@ -321,13 +321,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   aiBubble: {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 1.41,
-    elevation: 2,
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.15,
+    // shadowRadius: 1.41,
+    // elevation: 2,
   },
 });
