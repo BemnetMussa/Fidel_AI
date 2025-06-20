@@ -272,7 +272,7 @@ export default function ChatView() {
           <View className="flex-row items-center space-x-3">
             <TextInput
               className="flex-1 px-3 py-2 rounded-md border"
-              style={getInputStyle()}
+              style={[getInputStyle(), { maxHeight: 70 }]}
               placeholder="Ask anything..."
               placeholderTextColor={iconColor}
               value={input}
@@ -280,8 +280,8 @@ export default function ChatView() {
               returnKeyType="send"
               onSubmitEditing={sendMessage}
               editable={!isLoading}
-              multiline={true} 
-              textAlignVertical="top" 
+              multiline={true}
+              textAlignVertical="top"
             />
             <TouchableOpacity
               onPress={sendMessage}
