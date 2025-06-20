@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
+import chatRouter from "./routes/chatsRouter";
 
 import cors from "cors";
 
@@ -21,6 +22,8 @@ cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 });
+
+app.use("/api", chatRouter);
 
 async function main() {
   app.listen(PORT, () => {
