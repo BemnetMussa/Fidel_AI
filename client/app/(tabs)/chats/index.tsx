@@ -280,6 +280,8 @@ export default function ChatView() {
               returnKeyType="send"
               onSubmitEditing={sendMessage}
               editable={!isLoading}
+              multiline={true} 
+              textAlignVertical="top" 
             />
             <TouchableOpacity
               onPress={sendMessage}
@@ -319,7 +321,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
-    color: "white"
+    color: "white",
   },
   aiBubble: {
     // shadowColor: "#000",
