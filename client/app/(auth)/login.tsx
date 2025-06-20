@@ -51,34 +51,26 @@ export default function LoginScreen() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      // await authClient.signIn.email(
-      //   {
-      //     email: data.email,
-      //     password: data.password,
-      //   },
-      //   {
-      //     onSuccess: () => {
-      //       (global as any).showAppToast({
-      //         message: "Logged in successfully!",
-      //         type: "success",
-      //         duration: 3000,
-      //       });
+      await authClient.signIn.email(
+        {
+          email: data.email,
+          password: data.password,
+        },
+        {
+          onSuccess: () => {
+            (global as any).showAppToast({
+              message: "Logged in successfully!",
+              type: "success",
+              duration: 3000,
+            });
 
-      //       router.replace("/chats");
-      //     },
-      //     onError: ({ error }) => {
-      //       setError(error.message);
-      //     },
-      //   }
-      // );
-
-      // TEMPORARY HARDCODED LOGIN CREDENTIALS
-      if (data.email === "b@gmail.com" && data.password === "123456")
-        router.replace("/chats");
-      else
-        return console.log(
-          "Error while trying to login with hardcoded credentials"
-        );
+            router.replace("/chats");
+          },
+          onError: ({ error }) => {
+            setError(error.message);
+          },
+        }
+      );
     } catch (error) {
       console.error("Login error:", error);
     } finally {
