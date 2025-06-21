@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/db";
 import { AuthenticatedRequest } from "../types/express";
 
+console.log("Chats controller initialized");
 //create chat
 export const createConverstation = async (
   req: Request,
@@ -12,9 +13,10 @@ export const createConverstation = async (
     const userId = (req as AuthenticatedRequest).user;
     const { title } = req.body;
 
-    const chat = await prisma.converstation.create({
+    console.log("Creating chat for user:", userId.id, "with title:", title);
+    const chat = await prisma.conversation.create({
       data: {
-        userId,
+        userId: userId.id,
         title: title || "",
       },
     });
@@ -44,8 +46,10 @@ export const getConverstations = async (
   try {
     const userId = (req as AuthenticatedRequest).user;
 
-    const converstation = await prisma.converstation.findMany({
-      userId,
+    const converstation = await prisma.conversation.findMany({
+      where: {
+        userId: userId.id,
+      }
     });
 
     if (!converstation) {
@@ -76,10 +80,10 @@ export const getConverstationsWithMessage = async (
     const userId = (req as AuthenticatedRequest).user;
     const converstationId = req.params;
 
-    const converstationWithMessage = await prisma.converstation.findFirst({
+    const converstationWithMessage = await prisma.conversation.findFirst({
       where: {
         id: converstationId,
-        userId,
+        userId: userId.id,
       },
       include: {
         messages: {
@@ -113,12 +117,13 @@ export const deleteConverstation = async (
 ): Promise<void> => {
   try {
     const userId = (req as AuthenticatedRequest).user;
-    const converstationId = req.params;
+    const converstationId = parseInt(req.params.id);
+    
 
-    const existingConversation = await prisma.converstation.findFirst({
+    const existingConversation = await prisma.conversation.findFirst({
       where: {
         id: converstationId,
-        userId,
+        userId: userId.id,
       },
     });
 
@@ -129,8 +134,11 @@ export const deleteConverstation = async (
       return;
     }
 
-    await prisma.chat.delete({
-      where: { id: converstationId },
+    await prisma.conversation.delete({
+       where: {
+        id: converstationId,
+        userId: userId.id,
+      },
     });
 
     res.json({ message: "Chat deleted successfully." });

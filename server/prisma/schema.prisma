@@ -17,7 +17,7 @@ model User {
   updatedAt     DateTime   @updatedAt
   profile       Profile?
   sessions      Session[]
-  accounts      Account[]
+  accounts      Account[] 
   Conversation  Conversation[]  // Link to conversations
 
   @@map("user")
