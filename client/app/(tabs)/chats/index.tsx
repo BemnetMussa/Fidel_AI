@@ -14,11 +14,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ToastAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "./NavBar";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
+import * as Clipboard from "expo-clipboard";
+import Icon from "react-native-vector-icons/Ionicons";
 
 // Add your Gemini API key here
 const GEMINI_API_KEY = "AIzaSyDZ_jY2AD0z5JLiIdDYPqt7sH_fxc9WQtI";
@@ -49,14 +52,67 @@ export default function ChatView() {
     try {
       setIsLoading(true);
 
+      // Build the complete conversation history for context
+      // Start with a system message to establish the AI's awareness of conversation continuity
+      const conversationHistory = [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "You are an AI assistant that can remember and reference our conversation history. Please maintain context throughout our chat.",
+            },
+          ],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              text: "I understand. I will maintain context and can reference our previous conversation when needed. How can I help you?",
+            },
+          ],
+        },
+      ];
+
+      const filteredMessages = messages.filter(
+        (msg) =>
+          !(
+            msg.sender === "ai" &&
+            msg.text.includes("Hi! I'm your AI assistant")
+          ) &&
+          !(
+            msg.sender === "ai" &&
+            msg.text.includes("Sorry, I'm having trouble")
+          )
+      );
+
+      for (const msg of filteredMessages) {
+        conversationHistory.push({
+          role: msg.sender === "user" ? "user" : "model",
+          parts: [{ text: msg.text }],
+        });
+      }
+
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: userMessage }],
+      });
+
       const response = await axios.post(
         GEMINI_API_URL,
         {
-          contents: [{ parts: [{ text: userMessage }] }],
+          contents: conversationHistory,
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            topP: 0.95,
+            topK: 40,
+          },
         },
         {
-          headers: { "Content-Type": "application/json" },
-          timeout: 30000, // 30 second timeout
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
         }
       );
 
@@ -76,6 +132,7 @@ export default function ChatView() {
           },
         ]);
       } else {
+        console.error("Invalid Gemini Response Structure:", response.data);
         throw new Error("Invalid response from Gemini API");
       }
     } catch (error) {
@@ -84,8 +141,14 @@ export default function ChatView() {
       let errorMessage =
         "Sorry, I'm having trouble responding right now. Please try again.";
 
-      // Type guard for axios errors
       if (isAxiosError(error)) {
+        console.error("Axios Error Details:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          code: error.code,
+        });
+
         if (error.code === "ECONNABORTED") {
           errorMessage =
             "Request timed out. Please check your connection and try again.";
@@ -98,14 +161,13 @@ export default function ChatView() {
           errorMessage = "Access forbidden. Please check your API permissions.";
         } else if (error.response && error.response.status >= 500) {
           errorMessage = "Server error. Please try again later.";
+        } else if (error.response?.data?.error?.message) {
+          errorMessage = error.response.data.error.message;
         }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
       }
 
       Alert.alert("Error", errorMessage);
 
-      // OPTIONAL: Add error message
       setMessages((prev) => [
         ...prev,
         {
@@ -133,6 +195,15 @@ export default function ChatView() {
       setInput("");
 
       await sendMessageToGemini(userMessage);
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    Clipboard.setStringAsync(text);
+    if (Platform.OS === "android") {
+      ToastAndroid.show("Copied to clipboard!", ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Copied to clipboard!");
     }
   };
 
@@ -213,12 +284,12 @@ export default function ChatView() {
           {messages.map((msg, idx) => (
             <View
               key={idx}
-              className={`flex-row my-1 ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
+              className={`flex-col my-1 ${
+                msg.sender === "user" ? "items-end" : "items-start"
               }`}
             >
               <View
-                className={`max-w-[95%] px-4 py-3 ${
+                className={`max-w-[95%] px-2 py-3 ${
                   msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
                 }`}
                 style={[
@@ -237,8 +308,43 @@ export default function ChatView() {
                         : textColor,
                   }}
                 >
-                  {msg.text}
+                  {msg.text.trim()}
                 </Text>
+              </View>
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={() => handleCopy(msg.text)}
+                  className={` ${msg.sender === "user" ? "mt-2 self-end pr-2" : "self-start pl-2"}`}
+                >
+                  <Icon
+                    name="copy-outline"
+                    size={13}
+                    color={theme === "light" ? "black" : "white"}
+                  />
+                </TouchableOpacity>
+                {msg.sender === "user" ? (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="mt-2 self-end pr-2"
+                  >
+                    <Icon
+                      name="pencil-outline"
+                      size={13}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="self-start pl-2"
+                  >
+                    <Icon
+                      name="volume-high-outline"
+                      size={14}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))}
