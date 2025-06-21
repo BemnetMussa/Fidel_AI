@@ -174,11 +174,11 @@ export default function ChatView() {
 
   // Theme-aware colors for chat bubbles
   const getUserBubbleStyle = () => ({
-    backgroundColor: tintColor,
+    backgroundColor: theme === "light" ? "#A9E991" : "#2f2f2f",
   });
 
   const getAiBubbleStyle = () => ({
-    backgroundColor: theme === "light" ? "#F3F4F6" : "#374151",
+    backgroundColor: theme === "light" ? "white" : "",
   });
 
   const getInputContainerStyle = () => ({
@@ -187,8 +187,8 @@ export default function ChatView() {
   });
 
   const getInputStyle = () => ({
-    backgroundColor: theme === "light" ? "#F9FAFB" : "#1F2937",
-    borderColor: theme === "light" ? "#D1D5DB" : "#4B5563",
+    backgroundColor: theme === "light" ? "#F9FAFB" : "#2f2f2f",
+    borderColor: theme === "light" ? "#D1D5DB" : "#4B556",
     color: textColor,
   });
 
@@ -218,10 +218,8 @@ export default function ChatView() {
               }`}
             >
               <View
-                className={`max-w-[80%] px-4 py-3 ${
-                  msg.sender === "user"
-                    ? "rounded-l-xl rounded-tr-xl"
-                    : "rounded-r-xl rounded-tl-xl"
+                className={`max-w-[95%] px-4 py-3 ${
+                  msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
                 }`}
                 style={[
                   msg.sender === "user"
@@ -234,8 +232,8 @@ export default function ChatView() {
                     color:
                       msg.sender === "user"
                         ? theme === "light"
-                          ? "#FFFFFF"
-                          : "#000000"
+                          ? "#000000"
+                          : "white"
                         : textColor,
                   }}
                 >
@@ -274,7 +272,7 @@ export default function ChatView() {
           <View className="flex-row items-center space-x-3">
             <TextInput
               className="flex-1 px-3 py-2 rounded-md border"
-              style={getInputStyle()}
+              style={[getInputStyle(), { maxHeight: 70 }]}
               placeholder="Ask anything..."
               placeholderTextColor={iconColor}
               value={input}
@@ -282,6 +280,8 @@ export default function ChatView() {
               returnKeyType="send"
               onSubmitEditing={sendMessage}
               editable={!isLoading}
+              multiline={true}
+              textAlignVertical="top"
             />
             <TouchableOpacity
               onPress={sendMessage}
@@ -291,7 +291,9 @@ export default function ChatView() {
               <MaterialCommunityIcons
                 name="send"
                 size={20}
-                color={isLoading ? iconColor : theme === "light" ? "black" : "white"}
+                color={
+                  isLoading ? iconColor : theme === "light" ? "black" : "white"
+                }
               />
             </TouchableOpacity>
           </View>
@@ -319,15 +321,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
+    color: "white",
   },
   aiBubble: {
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 1.41,
-    elevation: 2,
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.15,
+    // shadowRadius: 1.41,
+    // elevation: 2,
   },
 });
