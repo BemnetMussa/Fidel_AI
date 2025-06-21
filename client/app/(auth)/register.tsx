@@ -53,6 +53,7 @@ export default function RegisterScreen() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
+      console.log("Registering user with data:", data);
       await authClient.signUp.email(
         {
           name: data.name,

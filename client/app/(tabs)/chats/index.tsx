@@ -45,79 +45,54 @@ export default function ChatView() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const sendMessageToGemini = async (userMessage: string) => {
-    try {
-      setIsLoading(true);
+ const [conversationId, setConversationId] = useState<string | null>(null);
 
-      const response = await axios.post(
-        GEMINI_API_URL,
-        {
-          contents: [{ parts: [{ text: userMessage }] }],
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 30000, // 30 second timeout
-        }
-      );
+const sendMessageToGemini = async (userMessage: string) => {
+  try {
+    setIsLoading(true);
+    console.log("Sending message to Gemini:", userMessage);
 
-      if (
-        response.data.candidates &&
-        response.data.candidates[0]?.content?.parts?.[0]?.text
-      ) {
-        const aiResponse = response.data.candidates[0].content.parts[0].text;
+    const response = await axios.post(
+      conversationId
+        ? `http://localhost:3000/api/chat/${conversationId}`
+        : `http://localhost:3000/api/chat`,
+      { user: userMessage },
+      { withCredentials: true }
+    );
 
-        // Add AI response to messages
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "ai",
-            text: aiResponse,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-      } else {
-        throw new Error("Invalid response from Gemini API");
-      }
-    } catch (error) {
-      console.error("Error calling Gemini API:", error);
+    const {
+      aiMessage,
+      userMessage: savedUserMessage,
+      conversationId: returnedId,
+    } = response.data;
 
-      let errorMessage =
-        "Sorry, I'm having trouble responding right now. Please try again.";
-
-      // Type guard for axios errors
-      if (isAxiosError(error)) {
-        if (error.code === "ECONNABORTED") {
-          errorMessage =
-            "Request timed out. Please check your connection and try again.";
-        } else if (error.response?.status === 429) {
-          errorMessage =
-            "Too many requests. Please wait a moment and try again.";
-        } else if (error.response?.status === 401) {
-          errorMessage = "Authentication failed. Please check your API key.";
-        } else if (error.response?.status === 403) {
-          errorMessage = "Access forbidden. Please check your API permissions.";
-        } else if (error.response && error.response.status >= 500) {
-          errorMessage = "Server error. Please try again later.";
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert("Error", errorMessage);
-
-      // OPTIONAL: Add error message
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: errorMessage,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
+    // Store new conversationId
+    if (!conversationId && returnedId) {
+      console.log("New conversationId:", returnedId);
+      setConversationId(returnedId.toString());
     }
-  };
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        text: savedUserMessage.content,
+        timestamp: savedUserMessage.createdAt,
+      },
+      {
+        sender: "ai",
+        text: aiMessage.content,
+        timestamp: aiMessage.createdAt,
+      },
+    ]);
+  } catch (error) {
+    console.error("Error calling backend:", error);
+    Alert.alert("Error", "Failed to send message. Try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const sendMessage = async () => {
     if (input.trim()) {
