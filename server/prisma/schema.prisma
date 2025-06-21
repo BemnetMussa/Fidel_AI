@@ -18,9 +18,9 @@ model User {
   profile       Profile?
   sessions      Session[]
   accounts      Account[]
+  Conversation  Conversation[]  // Link to conversations
 
   @@map("user")
-  Conversation Conversation[]
 }
 
 model Profile {
@@ -75,20 +75,21 @@ model Verification {
 
   @@map("verification")
 }
+
 model Conversation {
   id         Int       @id @default(autoincrement())
   title      String?
-  userId     Int
-  user       User      @relation(fields: [userId], references: [id])
+  userId     String     // must match User.id type
+  user       User       @relation(fields: [userId], references: [id])
   messages   Message[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
 model Message {
   id             Int           @id @default(autoincrement())
   content        String
-  sender         String        // 'user' or 'ai'
+  sender         String
   conversationId Int
   conversation   Conversation  @relation(fields: [conversationId], references: [id])
   createdAt      DateTime      @default(now())

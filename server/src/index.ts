@@ -2,8 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
+
 import chatRouter from "./routes/chatsRouter";
 import messageRouter from "./routes/messageRoute";
+
 
 import cors from "cors";
 
@@ -32,8 +34,6 @@ async function main() {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
 }
-
-main();
 
 main().catch((e) => {
   console.error(e);
