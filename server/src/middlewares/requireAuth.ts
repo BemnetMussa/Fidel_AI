@@ -8,17 +8,9 @@ export const requireAuth = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Convert req.headers to Headers
+    // Convert req.headers to Headers for Better Auth
     const headers = new Headers();
+    console.log("Headers received:", req.headers);
     for (const [key, value] of Object.entries(req.headers)) {
       if (value) {
         if (Array.isArray(value)) {
@@ -33,15 +25,15 @@ export const requireAuth = async (
       query: {
         disableCookieCache: true,
       },
-      headers, // Pass the Headers object
+      headers,
     });
 
     if (!session || !session.user || !session.user.id) {
-      res.status(401).json({ error: "Invalid token" });
+      res.status(401).json({ error: "Not authenticated" });
       return;
     }
-
-    // Attach user to req by casting to AuthenticatedRequest
+    console.log("Session retrieved:", session);
+    // Attach user
     (req as AuthenticatedRequest).user = {
       id: session.user.id,
       email: session.user.email,
@@ -49,8 +41,8 @@ export const requireAuth = async (
 
     next();
   } catch (error) {
-    console.error(error);
-    res.status(401).json({ error: "Unauthorized request" });
-    return;
+    console.error("Auth error:", error);
+    res.status(401).json({ error: "Unauthorized" });
   }
 };
+
