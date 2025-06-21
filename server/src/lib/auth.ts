@@ -11,6 +11,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
@@ -21,6 +22,7 @@ export const auth = betterAuth({
     //   clientId: process.env.GITHUB_CLIENT_ID!,
     //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     // },
+    
   },
   plugins: [
     emailOTP({
