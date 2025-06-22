@@ -51,6 +51,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
+      console.log("Login user with data:", data);
       await authClient.signIn.email(
         {
           email: data.email,

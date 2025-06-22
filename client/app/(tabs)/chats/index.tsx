@@ -23,9 +23,6 @@ import { Colors } from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import Icon from "react-native-vector-icons/Ionicons";
 
-// Add your Gemini API key here
-const GEMINI_API_KEY = "AIzaSyDZ_jY2AD0z5JLiIdDYPqt7sH_fxc9WQtI";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 interface Message {
   sender: "user" | "ai";
@@ -47,139 +44,56 @@ export default function ChatView() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
-  const sendMessageToGemini = async (userMessage: string) => {
-    try {
-      setIsLoading(true);
+const sendMessageToGemini = async (userMessage: string) => {
+  try {
+    setIsLoading(true);
+    console.log("Sending message to Gemini:", userMessage);
 
-      // Build the complete conversation history for context
-      // Start with a system message to establish the AI's awareness of conversation continuity
-      const conversationHistory = [
-        {
-          role: "user",
-          parts: [
-            {
-              text: "You are an AI assistant that can remember and reference our conversation history. Please maintain context throughout our chat.",
-            },
-          ],
-        },
-        {
-          role: "model",
-          parts: [
-            {
-              text: "I understand. I will maintain context and can reference our previous conversation when needed. How can I help you?",
-            },
-          ],
-        },
-      ];
 
-      const filteredMessages = messages.filter(
-        (msg) =>
-          !(
-            msg.sender === "ai" &&
-            msg.text.includes("Hi! I'm your AI assistant")
-          ) &&
-          !(
-            msg.sender === "ai" &&
-            msg.text.includes("Sorry, I'm having trouble")
-          )
-      );
+    const response = await axios.post(
+      conversationId
+        ? `http://localhost:3000/api/chat/${conversationId}`
+        : `http://localhost:3000/api/chat`,
+      { user: userMessage },
+      { withCredentials: true }
+    );
 
-      for (const msg of filteredMessages) {
-        conversationHistory.push({
-          role: msg.sender === "user" ? "user" : "model",
-          parts: [{ text: msg.text }],
-        });
-      }
 
-      conversationHistory.push({
-        role: "user",
-        parts: [{ text: userMessage }],
-      });
+    const {
+      aiMessage,
+      userMessage: savedUserMessage,
+      conversationId: returnedId,
+    } = response.data;
 
-      const response = await axios.post(
-        GEMINI_API_URL,
-        {
-          contents: conversationHistory,
-          generationConfig: {
-            maxOutputTokens: 2048,
-            temperature: 0.7,
-            topP: 0.95,
-            topK: 40,
-          },
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 30000,
-        }
-      );
-
-      if (
-        response.data.candidates &&
-        response.data.candidates[0]?.content?.parts?.[0]?.text
-      ) {
-        const aiResponse = response.data.candidates[0].content.parts[0].text;
-
-        // Add AI response to messages
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "ai",
-            text: aiResponse,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-      } else {
-        console.error("Invalid Gemini Response Structure:", response.data);
-        throw new Error("Invalid response from Gemini API");
-      }
-    } catch (error) {
-      console.error("Error calling Gemini API:", error);
-
-      let errorMessage =
-        "Sorry, I'm having trouble responding right now. Please try again.";
-
-      if (isAxiosError(error)) {
-        console.error("Axios Error Details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          code: error.code,
-        });
-
-        if (error.code === "ECONNABORTED") {
-          errorMessage =
-            "Request timed out. Please check your connection and try again.";
-        } else if (error.response?.status === 429) {
-          errorMessage =
-            "Too many requests. Please wait a moment and try again.";
-        } else if (error.response?.status === 401) {
-          errorMessage = "Authentication failed. Please check your API key.";
-        } else if (error.response?.status === 403) {
-          errorMessage = "Access forbidden. Please check your API permissions.";
-        } else if (error.response && error.response.status >= 500) {
-          errorMessage = "Server error. Please try again later.";
-        } else if (error.response?.data?.error?.message) {
-          errorMessage = error.response.data.error.message;
-        }
-      }
-
-      Alert.alert("Error", errorMessage);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: errorMessage,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
+    // Store new conversationId
+    if (!conversationId && returnedId) {
+      console.log("New conversationId:", returnedId);
+      setConversationId(returnedId.toString());
     }
-  };
+
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        text: savedUserMessage.content,
+        timestamp: savedUserMessage.createdAt,
+      },
+      {
+        sender: "ai",
+        text: aiMessage.content,
+        timestamp: aiMessage.createdAt,
+      },
+    ]);
+  } catch (error) {
+    console.error("Error calling backend:", error);
+    Alert.alert("Error", "Failed to send message. Try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const sendMessage = async () => {
     if (input.trim()) {

@@ -43,7 +43,7 @@ export const auth = betterAuth({
           } else if (type === "email-verification") {
             console.log("[OTP SEND] Sending verification OTP:", otp);
             await sendEmail({
-              to: email,
+              to: email, 
               subject: "Verify Your Email Address",
               text: `
 Hi there,
