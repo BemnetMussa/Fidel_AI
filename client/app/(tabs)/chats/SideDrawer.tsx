@@ -7,7 +7,7 @@ import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
 import { promptRenameConversation } from "@/conversation-actions/promptRenameConversation";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -37,10 +37,6 @@ export interface Conversation {
   updatedAt: string;
 }
 
-type RouterParams = {
-  ChatView: { chatId: string };
-};
-
 const SideDrawer: React.FC<SideDrawerProps> = ({
   isVisible,
   onClose,
@@ -53,8 +49,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
-
-  const navigation = useNavigation<NavigationProp<RouterParams>>();
 
   useEffect(() => {
     loadConversation();
@@ -93,10 +87,16 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         }
       );
 
-      const newConversation = response.data; // Single conversation object
+      const { chat: newConversation } = response.data; // Single conversation object
+      if (!newConversation?.id) {
+        throw new Error("Conversation ID missing from server response");
+      }
       setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
-      navigation.navigate("ChatView", {
-        chatId: newConversation.id.toString(),
+      console.log("New conversation response:", response.data);
+
+      router.push({
+        pathname: "/chats/[chatId]",
+        params: { chatId: newConversation.id.toString() },
       });
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -108,7 +108,10 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleConversationPress = (conversation: Conversation) => {
     console.log(`Opening conversation: ${conversation.title}`);
-    navigation.navigate("ChatView", { chatId: conversation.id.toString() });
+    router.push({
+      pathname: "/chats/[chatId]",
+      params: { chatId: conversation.id.toString() },
+    });
     onClose();
   };
 

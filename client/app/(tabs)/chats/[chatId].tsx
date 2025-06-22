@@ -46,6 +46,12 @@ export default function ChatView() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof chatId === "string") {
+      setConversationId(chatId);
+    }
+  }, [chatId]);
+
   const sendMessageToGemini = async (userMessage: string) => {
     try {
       setIsLoading(true);
@@ -173,6 +179,26 @@ export default function ChatView() {
     borderColor: theme === "light" ? "#D1D5DB" : "#4B556",
     color: textColor,
   });
+
+  // fetch exsiting data
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!chatId) return;
+
+      try {
+        const response = await axios.get(`${baseURL}/api/message/${chatId}`, {
+          withCredentials: true,
+        });
+
+        const { messages } = response.data; // assuming your backend returns a list
+        setMessages(messages);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
+    };
+
+    fetchMessages();
+  }, [chatId]);
 
   return (
     <SafeAreaView

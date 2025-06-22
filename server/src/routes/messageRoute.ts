@@ -8,13 +8,9 @@ import {
 
 const router = express.Router();
 
-router.post(
-  "/conversations/:conversationId/messages",
-  requireAuth,
-  createMessage
-);
+router.post("/:conversationId", requireAuth, createMessage);
 // router.get("/conversations/:conversationId/messages", requireAuth, getMessages); this fetch message
-router.put("/messages/:messageId", requireAuth, updateMessage);
-router.delete("/messages/:messageId", requireAuth, deleteMessage);
+router.put("/:messageId", requireAuth, updateMessage);
+router.delete("/:messageId", requireAuth, deleteMessage);
 
 export default router;
