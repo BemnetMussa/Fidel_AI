@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
-import { baseURL } from "@/lib/auth-client";
+import { authClient, baseURL } from "@/lib/auth-client";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useNavigation, useRouter } from "expo-router";
@@ -254,6 +254,32 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
     onClose();
+  };
+
+  const handleLogout = async () => {
+    Alert.alert("Logout", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await authClient.signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push("/(auth)/login");
+                },
+              },
+            });
+
+            onClose();
+          } catch (error) {
+            console.error("Error logging out:", error);
+            Alert.alert("Error", "Failed to log out.");
+          }
+        },
+      },
+    ]);
   };
 
   const renderconversationItem = (conversation: Conversation) => (
