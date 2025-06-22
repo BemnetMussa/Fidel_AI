@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
-import { authClient, baseURL } from "@/lib/auth-client";
+import { baseURL } from "@/lib/auth-client";
+import { useHandleLogout } from "@/reFunction/HandleSignOut";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useNavigation, useRouter } from "expo-router";
@@ -45,7 +46,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
@@ -256,31 +256,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     onClose();
   };
 
-  const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await authClient.signOut({
-              fetchOptions: {
-                onSuccess: () => {
-                  router.push("/(auth)/login");
-                },
-              },
-            });
-
-            onClose();
-          } catch (error) {
-            console.error("Error logging out:", error);
-            Alert.alert("Error", "Failed to log out.");
-          }
-        },
-      },
-    ]);
-  };
+  // logout
+  const handleLogout = useHandleLogout();
 
   const renderconversationItem = (conversation: Conversation) => (
     <TouchableOpacity
@@ -468,7 +445,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleLogout}
+                onPress={() => handleLogout({ onClose })}
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="log-out" size={18} color="#EF4444" />
