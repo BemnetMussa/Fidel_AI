@@ -54,7 +54,7 @@ export default function ChatView() {
         conversationId
           ? `http://192.168.107.60:3000/api/message/${conversationId}`
           : `http://192.168.107.60:3000/api/message`,
-        { user: userMessage },
+        { content: userMessage },
         { withCredentials: true }
       );
 

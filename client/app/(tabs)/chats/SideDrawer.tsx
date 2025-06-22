@@ -1,5 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
+import { baseURL } from "@/lib/auth-client";
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -28,11 +30,20 @@ interface SideDrawerProps {
   slideAnim: Animated.Value;
 }
 
+interface Conversation {
+  id: number;
+  title: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const SideDrawer: React.FC<SideDrawerProps> = ({
   isVisible,
   onClose,
   slideAnim,
 }) => {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,38 +53,19 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const iconColor = Colors[theme].icon;
 
   useEffect(() => {
-    loadChats();
+    loadConversation();
   }, []);
 
-  const loadChats = async () => {
+  const loadConversation = async () => {
     setLoading(true);
     try {
-      // Dummy data - replace with actual API call
-      const mockChats: Chat[] = [
-        {
-          id: "1",
-          title: "What is coding?",
-          lastMessage: "Coding is the process of creating instructions...",
-          updatedAt: new Date(),
-        },
-        {
-          id: "2",
-          title: "What is programming?",
-          lastMessage: "Programming involves writing code...",
-          updatedAt: new Date(),
-        },
-      ];
+      const response = await axios.get(`${baseURL}/api/converstation`, {
+        // headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
 
-      // Simulate API delay
-      setTimeout(() => {
-        setChats(mockChats);
-        setLoading(false);
-      }, 500);
-
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/chats');
-      // const chatsData = await response.json();
-      // setChats(chatsData);
+      setConversations(response.data); // Update state with conversations
+      setLoading(false);
     } catch (error) {
       console.error("Error loading chats:", error);
       setLoading(false);
@@ -99,7 +91,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleClearConversations = () => {
     console.log("Clearing conversations");
-    setChats([]); 
+    setChats([]);
     // TODO: Call API to clear conversations
     onClose();
   };
