@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import prisma from "../config/db";
+import { AuthenticatedRequest } from "../types/express";
 
-const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       select: { id: true, email: true, name: true },
@@ -9,6 +10,7 @@ const getUsers = async (req: Request, res: Response) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch users" });
+    return;
   }
 };
 

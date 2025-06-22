@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
-  email         String     @unique
-  emailVerified Boolean?   @default(false)
+  email         String         @unique
+  emailVerified Boolean?       @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Conversation  Conversation[]
+  accounts      Account[]
   profile       Profile?
   sessions      Session[]
-  accounts      Account[] 
-  Conversation  Conversation[]  // Link to conversations
 
   @@map("user")
 }
@@ -26,8 +26,8 @@ model User {
 model Profile {
   id     Int     @id @default(autoincrement())
   bio    String?
-  user   User    @relation(fields: [userId], references: [id])
   userId String  @unique
+  user   User    @relation(fields: [userId], references: [id])
 
   @@map("profile")
 }
@@ -36,12 +36,12 @@ model Session {
   id        String   @id
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("session")
 }
@@ -51,7 +51,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -61,6 +60,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -77,20 +77,20 @@ model Verification {
 }
 
 model Conversation {
-  id         Int       @id @default(autoincrement())
-  title      String?
-  userId     String     // must match User.id type
-  user       User       @relation(fields: [userId], references: [id])
-  messages   Message[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id        Int       @id @default(autoincrement())
+  title     String?
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
 }
 
 model Message {
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   content        String
   sender         String
   conversationId Int
-  conversation   Conversation  @relation(fields: [conversationId], references: [id])
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
 }

@@ -60,6 +60,9 @@ export default function RegisterScreen() {
           password: data.password,
         },
         {
+          onRequest: () => {
+            console.log("request send");
+          },
           onSuccess: async () => {
             console.log("Registration successful, sending verification email");
             await authClient.emailOtp.sendVerificationOtp({

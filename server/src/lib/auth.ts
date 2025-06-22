@@ -7,10 +7,8 @@ import { sendEmail } from "./sendEmail"; // adjust path if needed
 
 export const prisma = new PrismaClient().$extends(withAccelerate());
 
-console.log("Prisma Client initialized with Accelerate extension.");
 // Base URL for the auth client
 export const auth = betterAuth({
-
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -32,7 +30,6 @@ export const auth = betterAuth({
     //   clientId: process.env.GITHUB_CLIENT_ID!,
     //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     // },
-
   },
   plugins: [
     emailOTP({
@@ -90,7 +87,7 @@ Fidel AI
       },
     }),
   ],
-  secret: process.env.BETTER_AUTH!,
+  secret: process.env.BETTER_AUTH_SECRET!,
   databaseHooks: {
     user: {
       create: {
