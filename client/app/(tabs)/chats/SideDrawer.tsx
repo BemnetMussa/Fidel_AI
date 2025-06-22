@@ -177,6 +177,38 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     );
   };
 
+  const confirmDeleteConversation = async (conversation: Conversation) => {
+    Alert.alert(
+      "Delete Conversation",
+      "Are you sure you want to delete this conversation?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("jwtToken");
+              await axios.delete(
+                `${baseURL}/api/conversations/${conversation.id}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                  withCredentials: true,
+                }
+              );
+              setConversations((prev) =>
+                prev.filter((c) => c.id !== conversation.id)
+              );
+            } catch (error) {
+              console.error("Error deleting conversation:", error);
+              Alert.alert("Error", "Failed to delete conversation.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleClearConversations = () => {
     console.log("Clearing conversations");
     setConversations([]);
