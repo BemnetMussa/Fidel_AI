@@ -3,7 +3,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/lib/auth-client";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -45,6 +45,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
@@ -72,11 +73,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
-  const handleNewConversation = async (
-    setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    onClose: () => void
-  ) => {
+  const handleNewConversation = async () => {
     console.log("Creating new conversation");
     setLoading(true);
 
@@ -188,11 +185,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           style: "destructive",
           onPress: async () => {
             try {
-              const token = await AsyncStorage.getItem("jwtToken");
+              // const token = await AsyncStorage.getItem("jwtToken");
               await axios.delete(
                 `${baseURL}/api/conversations/${conversation.id}`,
                 {
-                  headers: { Authorization: `Bearer ${token}` },
+                  // headers: { Authorization: `Bearer ${token}` },
                   withCredentials: true,
                 }
               );
@@ -209,11 +206,44 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     );
   };
 
-  const handleClearConversations = () => {
-    console.log("Clearing conversations");
-    setConversations([]);
-    // TODO: Call API to clear conversations
-    onClose();
+  const handleClearConversations = async () => {
+    Alert.alert(
+      "Clear All Conversations",
+      "Are you sure you want to delete all conversations?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // const token = await AsyncStorage.getItem("jwtToken");
+              const response = await axios.get(`${baseURL}/api/conversations`, {
+                // headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
+              });
+              const conversations: Conversation[] = response.data;
+
+              for (const conversation of conversations) {
+                await axios.delete(
+                  `${baseURL}/api/conversations/${conversation.id}`,
+                  {
+                    // headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
+                  }
+                );
+              }
+
+              setConversations([]);
+              onClose();
+            } catch (error) {
+              console.error("Error clearing conversations:", error);
+              Alert.alert("Error", "Failed to clear conversations.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleUpgradeToPlus = () => {
@@ -223,11 +253,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
-    onClose();
-  };
-
-  const handleLogout = () => {
-    console.log("Logging out");
     onClose();
   };
 
