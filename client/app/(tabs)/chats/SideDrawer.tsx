@@ -1,10 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/lib/auth-client";
-import { handleClearConversations } from "@/reFunction/clearConversation";
-import { confirmDeleteConversation } from "@/reFunction/confirmDeleteConversation";
-import { useHandleLogout } from "@/reFunction/HandleSignOut";
-import { promptRenameConversation } from "@/reFunction/promptRenameConversation";
+import { handleClearConversations } from "@/conversation-actions/clearConversation";
+import { confirmDeleteConversation } from "@/conversation-actions/confirmDeleteConversation";
+import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
+import { promptRenameConversation } from "@/conversation-actions/promptRenameConversation";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useNavigation } from "expo-router";
