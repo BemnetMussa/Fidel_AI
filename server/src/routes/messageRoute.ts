@@ -1,11 +1,11 @@
-import express from "express";
-import { requireAuth } from "../middlewares/requireAuth";
-import { createMessage} from "../controllers/messageController";
+// import express from "express";
+// import { requireAuth } from "../middlewares/requireAuth";
+// import { createMessage} from "../controllers/messageController";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.get("/", requireAuth, createMessage);
-// router.post("/messageId", requireAuth, updateMessgae);
+// router.get("/", requireAuth, createMessage);
+// // router.post("/messageId", requireAuth, updateMessgae);
 
-export default router;
+// export default router;
 

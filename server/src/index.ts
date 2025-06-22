@@ -4,7 +4,7 @@ import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
 
 import chatRouter from "./routes/chatsRouter";
-import messageRouter from "./routes/messageRoute";
+// import messageRouter from "./routes/messageRoute";
 import cors from "cors";
 
 dotenv.config();
