@@ -49,7 +49,7 @@ export const getConverstations = async (
     const converstation = await prisma.conversation.findMany({
       where: {
         userId: userId.id,
-      }
+      },
     });
 
     if (!converstation) {
@@ -118,7 +118,6 @@ export const deleteConverstation = async (
   try {
     const userId = (req as AuthenticatedRequest).user;
     const converstationId = parseInt(req.params.id);
-    
 
     const existingConversation = await prisma.conversation.findFirst({
       where: {
@@ -135,7 +134,7 @@ export const deleteConverstation = async (
     }
 
     await prisma.conversation.delete({
-       where: {
+      where: {
         id: converstationId,
         userId: userId.id,
       },

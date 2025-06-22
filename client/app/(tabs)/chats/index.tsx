@@ -14,11 +14,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ToastAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "./NavBar";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
+import * as Clipboard from "expo-clipboard";
+import Icon from "react-native-vector-icons/Ionicons";
 
 
 interface Message {
@@ -48,6 +51,7 @@ const sendMessageToGemini = async (userMessage: string) => {
     setIsLoading(true);
     console.log("Sending message to Gemini:", userMessage);
 
+
     const response = await axios.post(
       conversationId
         ? `http://localhost:3000/api/chat/${conversationId}`
@@ -55,6 +59,7 @@ const sendMessageToGemini = async (userMessage: string) => {
       { user: userMessage },
       { withCredentials: true }
     );
+
 
     const {
       aiMessage,
@@ -67,6 +72,7 @@ const sendMessageToGemini = async (userMessage: string) => {
       console.log("New conversationId:", returnedId);
       setConversationId(returnedId.toString());
     }
+
 
     setMessages((prev) => [
       ...prev,
@@ -89,7 +95,6 @@ const sendMessageToGemini = async (userMessage: string) => {
   }
 };
 
-
   const sendMessage = async () => {
     if (input.trim()) {
       const userMessage = input.trim();
@@ -104,6 +109,15 @@ const sendMessageToGemini = async (userMessage: string) => {
       setInput("");
 
       await sendMessageToGemini(userMessage);
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    Clipboard.setStringAsync(text);
+    if (Platform.OS === "android") {
+      ToastAndroid.show("Copied to clipboard!", ToastAndroid.SHORT);
+    } else {
+      Alert.alert("Copied to clipboard!");
     }
   };
 
@@ -184,12 +198,12 @@ const sendMessageToGemini = async (userMessage: string) => {
           {messages.map((msg, idx) => (
             <View
               key={idx}
-              className={`flex-row my-1 ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
+              className={`flex-col my-1 ${
+                msg.sender === "user" ? "items-end" : "items-start"
               }`}
             >
               <View
-                className={`max-w-[95%] px-4 py-3 ${
+                className={`max-w-[95%] px-2 py-3 ${
                   msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
                 }`}
                 style={[
@@ -208,8 +222,43 @@ const sendMessageToGemini = async (userMessage: string) => {
                         : textColor,
                   }}
                 >
-                  {msg.text}
+                  {msg.text.trim()}
                 </Text>
+              </View>
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={() => handleCopy(msg.text)}
+                  className={` ${msg.sender === "user" ? "mt-2 self-end pr-2" : "self-start pl-2"}`}
+                >
+                  <Icon
+                    name="copy-outline"
+                    size={13}
+                    color={theme === "light" ? "black" : "white"}
+                  />
+                </TouchableOpacity>
+                {msg.sender === "user" ? (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="mt-2 self-end pr-2"
+                  >
+                    <Icon
+                      name="pencil-outline"
+                      size={13}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => console.log("Speaker is clicked")}
+                    className="self-start pl-2"
+                  >
+                    <Icon
+                      name="volume-high-outline"
+                      size={14}
+                      color={theme === "light" ? "black" : "white"}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))}
