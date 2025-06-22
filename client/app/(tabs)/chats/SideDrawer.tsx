@@ -4,6 +4,7 @@ import { baseURL } from "@/lib/auth-client";
 import { handleClearConversations } from "@/reFunction/clearConversation";
 import { confirmDeleteConversation } from "@/reFunction/confirmDeleteConversation";
 import { useHandleLogout } from "@/reFunction/HandleSignOut";
+import { promptRenameConversation } from "@/reFunction/promptRenameConversation";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
 import { useNavigation } from "expo-router";
@@ -120,7 +121,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       [
         {
           text: "Rename",
-          onPress: () => promptRenameConversation(conversation),
+          onPress: () =>
+            promptRenameConversation({ conversation, setConversations }),
         },
         {
           text: "Delete",
@@ -131,49 +133,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         { text: "Cancel", style: "cancel" },
       ],
       { cancelable: true }
-    );
-  };
-
-  const promptRenameConversation = async (conversation: Conversation) => {
-    Alert.prompt(
-      "Rename Conversation",
-      "Enter new title",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Save",
-          onPress: async (newTitle) => {
-            if (newTitle?.trim()) {
-              try {
-                // const token = await AsyncStorage.getItem("jwtToken");
-                await axios.put(
-                  `${baseURL}/api/conversations/${conversation.id}`,
-                  { title: newTitle.trim() },
-                  {
-                    // headers: { Authorization: `Bearer ${token}` },
-                    withCredentials: true,
-                  }
-                );
-                setConversations((prev) =>
-                  prev.map((c) =>
-                    c.id === conversation.id
-                      ? { ...c, title: newTitle.trim() }
-                      : c
-                  )
-                );
-              } catch (error) {
-                console.error("Error renaming conversation:", error);
-                Alert.alert("Error", "Failed to rename conversation.");
-              }
-            }
-          },
-        },
-      ],
-      "plain-text",
-      conversation.title
     );
   };
 
