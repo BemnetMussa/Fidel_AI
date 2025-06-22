@@ -1,7 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/lib/auth-client";
+import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
+import { useNavigation } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -10,10 +12,10 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
-
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
 
@@ -31,6 +33,10 @@ interface Conversation {
   updatedAt: string;
 }
 
+type RouterParams = {
+  ChatView: { chatId: string };
+};
+
 const SideDrawer: React.FC<SideDrawerProps> = ({
   isVisible,
   onClose,
@@ -44,6 +50,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
 
+  const navigation = useNavigation<NavigationProp<RouterParams>>();
+
   useEffect(() => {
     loadConversation();
   }, []);
@@ -51,7 +59,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const loadConversation = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseURL}/api/converstation`, {
+      const response = await axios.get(`${baseURL}/api/conversation`, {
         // headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
@@ -64,23 +72,34 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
-  const handleNewConversation = async () => {
+  const handleNewConversation = async (
+    setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>,
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    onClose: () => void
+  ) => {
     console.log("Creating new conversation");
-    // TODO: Create new conversation and add to state
     setLoading(true);
+
     try {
+      // const token = await AsyncStorage.getItem("jwtToken");
+      // if (!token) throw new Error("No authentication token found");
+
       const response = await axios.post(
-        `${baseURL}/api/converstation`, // double check spelling: maybe you meant `/api/conversation`?
-        {}, // send empty body if needed
+        `${baseURL}/api/conversation`, // Fixed typo
+        { title: "New Chat" }, // Optional title
         {
+          // headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
-          // headers: { Authorization: `Bearer ${token}` }, // uncomment if needed
         }
       );
 
-      setConversations(response.data); // Update state with new conversation list
+      const newConversation = response.data; // Single conversation object
+      setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
+      navigation.navigate("ChatView", {
+        chatId: newConversation.id.toString(),
+      });
     } catch (error) {
-      console.error("Error loading conversations:", error);
+      console.error("Error creating conversation:", error);
     } finally {
       setLoading(false);
       onClose();
@@ -89,13 +108,73 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleConversationPress = (conversation: Conversation) => {
     console.log(`Opening conversation: ${conversation.title}`);
-    // TODO: Navigate to conversation or load conversation messages
+    navigation.navigate("ChatView", { chatId: conversation.id.toString() });
     onClose();
   };
 
   const handleConversationOptions = (conversation: Conversation) => {
     console.log(`Opening options for conversation: ${conversation.title}`);
     // TODO: Show conversation options (rename, delete, etc.)
+    Alert.alert(
+      "Conversation Options",
+      `Manage "${conversation.title}"`,
+      [
+        {
+          text: "Rename",
+          onPress: () => promptRenameConversation(conversation),
+        },
+        {
+          text: "Delete",
+          onPress: () => confirmDeleteConversation(conversation),
+          style: "destructive",
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const promptRenameConversation = async (conversation: Conversation) => {
+    Alert.prompt(
+      "Rename Conversation",
+      "Enter new title",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Save",
+          onPress: async (newTitle) => {
+            if (newTitle?.trim()) {
+              try {
+                // const token = await AsyncStorage.getItem("jwtToken");
+                await axios.put(
+                  `${baseURL}/api/conversations/${conversation.id}`,
+                  { title: newTitle.trim() },
+                  {
+                    // headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
+                  }
+                );
+                setConversations((prev) =>
+                  prev.map((c) =>
+                    c.id === conversation.id
+                      ? { ...c, title: newTitle.trim() }
+                      : c
+                  )
+                );
+              } catch (error) {
+                console.error("Error renaming conversation:", error);
+                Alert.alert("Error", "Failed to rename conversation.");
+              }
+            }
+          },
+        },
+      ],
+      "plain-text",
+      conversation.title
+    );
   };
 
   const handleClearConversations = () => {

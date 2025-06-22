@@ -27,7 +27,7 @@ app.use(
   })
 );
 
-app.use("/api/converstation", converstationRouter);
+app.use("/api/conversation", converstationRouter);
 app.use("/api/message", messageRouter);
 app.use("/api", userRouter);
 

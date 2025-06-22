@@ -22,6 +22,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import Icon from "react-native-vector-icons/Ionicons";
+import { baseURL } from "@/lib/auth-client";
 
 interface Message {
   sender: "user" | "ai";
@@ -52,8 +53,8 @@ export default function ChatView() {
 
       const response = await axios.post(
         conversationId
-          ? `http://192.168.107.60:3000/api/message/${conversationId}`
-          : `http://192.168.107.60:3000/api/message`,
+          ? `${baseURL}/api/message/${conversationId}`
+          : `${baseURL}/api/message`,
         { content: userMessage },
         { withCredentials: true }
       );
