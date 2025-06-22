@@ -5,6 +5,7 @@ import axios from "axios";
 
 // Gemini credentials
 const GEMINI_API_URL = process.env.GEMINI_API_URL!;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 export const createMessage = async (
   req: Request,
@@ -12,7 +13,6 @@ export const createMessage = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    
     console.log("Handling chat message request...");
     const userId = (req as AuthenticatedRequest).user.id;
     const { user } = req.body;
@@ -40,12 +40,10 @@ export const createMessage = async (
           userId,
           title: "New Chat",
         },
-
       });
       conversationId = conversation.id;
       console.log("New conversation created with ID:", conversationId);
     }
-
 
     if (conversationId === null) {
       const error = new Error("Conversation ID is required.");
@@ -72,7 +70,7 @@ export const createMessage = async (
         headers: {
           "Content-Type": "application/json",
           // You can add your Gemini API key here if needed
-          // "Authorization": `Bearer ${GEMINI_API_KEY}`,
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
         },
       }
     );
@@ -102,7 +100,6 @@ export const createMessage = async (
   }
 };
 
-
 // export const updateMessgae = async (
 //   req: Request,
 //   res: Response,
@@ -116,7 +113,7 @@ export const createMessage = async (
 
 //     const existingMessage = await prisma.conversation.findFirst({
 //       where: {
-//         id: chatId, 
+//         id: chatId,
 //         userId: userId,
 //         messages: messageId,
 //       },
@@ -155,7 +152,7 @@ export const createMessage = async (
 //     const existingMessage = await prisma.message.findFirst({
 //       where: {
 //         id: messageId
-  
+
 //       },
 //     });
 

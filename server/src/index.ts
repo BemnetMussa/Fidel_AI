@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
 import chatRouter from "./routes/chatsRouter";
-// import messageRouter from "./routes/messageRoute";
+import messageRouter from "./routes/messageRoute";
 import cors from "cors";
 import userRouter from "./routes/authRoute";
 
@@ -21,7 +21,7 @@ app.use(express.json());
 // Configure CORS middleware
 app.use(
   cors({
-    origin: "exp://192.168.1.8:8081", // or your frontend URL
+    origin: "exp://192.168.43.221:8081", // or your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

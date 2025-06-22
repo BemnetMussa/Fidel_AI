@@ -4,7 +4,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import { createMessage } from "../controllers/messageController";
 
 
-// const router = express.Router();
+const router = express.Router();
 
 
 // router.get("/", requireAuth, createMessage);

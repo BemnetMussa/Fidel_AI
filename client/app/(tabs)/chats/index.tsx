@@ -23,7 +23,6 @@ import { Colors } from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import Icon from "react-native-vector-icons/Ionicons";
 
-
 interface Message {
   sender: "user" | "ai";
   text: string;
@@ -46,54 +45,53 @@ export default function ChatView() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
 
-const sendMessageToGemini = async (userMessage: string) => {
-  try {
-    setIsLoading(true);
-    console.log("Sending message to Gemini:", userMessage);
+  const sendMessageToGemini = async (userMessage: string) => {
+    try {
+      setIsLoading(true);
+      console.log("Sending message to Gemini:", userMessage);
 
+      const response = await axios.post(
+        conversationId
+          ? // ? `http://localhost:3000/api/chat/${conversationId}`
+            // : `http://localhost:3000/api/chat`,
+            `http://192.168.43.221:3000/api/chat/${conversationId}`
+          : `http://192.168.43.221:3000/api/chat`,
+        { user: userMessage },
+        { withCredentials: true }
+      );
 
-    const response = await axios.post(
-      conversationId
-        ? `http://localhost:3000/api/chat/${conversationId}`
-        : `http://localhost:3000/api/chat`,
-      { user: userMessage },
-      { withCredentials: true }
-    );
+      const {
+        aiMessage,
+        userMessage: savedUserMessage,
+        conversationId: returnedId,
+      } = response.data;
 
+      // Store new conversationId
+      if (!conversationId && returnedId) {
+        console.log("New conversationId:", returnedId);
+        setConversationId(returnedId.toString());
+      }
 
-    const {
-      aiMessage,
-      userMessage: savedUserMessage,
-      conversationId: returnedId,
-    } = response.data;
-
-    // Store new conversationId
-    if (!conversationId && returnedId) {
-      console.log("New conversationId:", returnedId);
-      setConversationId(returnedId.toString());
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "user",
+          text: savedUserMessage.content,
+          timestamp: savedUserMessage.createdAt,
+        },
+        {
+          sender: "ai",
+          text: aiMessage.content,
+          timestamp: aiMessage.createdAt,
+        },
+      ]);
+    } catch (error) {
+      console.error("Error calling backend:", error);
+      Alert.alert("Error", "Failed to send message. Try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: "user",
-        text: savedUserMessage.content,
-        timestamp: savedUserMessage.createdAt,
-      },
-      {
-        sender: "ai",
-        text: aiMessage.content,
-        timestamp: aiMessage.createdAt,
-      },
-    ]);
-  } catch (error) {
-    console.error("Error calling backend:", error);
-    Alert.alert("Error", "Failed to send message. Try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const sendMessage = async () => {
     if (input.trim()) {
@@ -238,7 +236,7 @@ const sendMessageToGemini = async (userMessage: string) => {
                 </TouchableOpacity>
                 {msg.sender === "user" ? (
                   <TouchableOpacity
-                    onPress={() => console.log("Speaker is clicked")}
+                    onPress={() => console.log("Edit is clicked")}
                     className="mt-2 self-end pr-2"
                   >
                     <Icon
