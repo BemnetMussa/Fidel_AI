@@ -2,6 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/lib/auth-client";
 import { handleClearConversations } from "@/reFunction/clearConversation";
+import { confirmDeleteConversation } from "@/reFunction/confirmDeleteConversation";
 import { useHandleLogout } from "@/reFunction/HandleSignOut";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
@@ -123,7 +124,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         },
         {
           text: "Delete",
-          onPress: () => confirmDeleteConversation(conversation),
+          onPress: () =>
+            confirmDeleteConversation({ setConversations, conversation }),
           style: "destructive",
         },
         { text: "Cancel", style: "cancel" },
@@ -172,38 +174,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       ],
       "plain-text",
       conversation.title
-    );
-  };
-
-  const confirmDeleteConversation = async (conversation: Conversation) => {
-    Alert.alert(
-      "Delete Conversation",
-      "Are you sure you want to delete this conversation?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // const token = await AsyncStorage.getItem("jwtToken");
-              await axios.delete(
-                `${baseURL}/api/conversations/${conversation.id}`,
-                {
-                  // headers: { Authorization: `Bearer ${token}` },
-                  withCredentials: true,
-                }
-              );
-              setConversations((prev) =>
-                prev.filter((c) => c.id !== conversation.id)
-              );
-            } catch (error) {
-              console.error("Error deleting conversation:", error);
-              Alert.alert("Error", "Failed to delete conversation.");
-            }
-          },
-        },
-      ]
     );
   };
 
