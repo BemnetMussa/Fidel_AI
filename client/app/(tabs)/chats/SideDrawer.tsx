@@ -64,10 +64,27 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
-  const handleNewConversation = () => {
+  const handleNewConversation = async () => {
     console.log("Creating new conversation");
     // TODO: Create new conversation and add to state
-    onClose();
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${baseURL}/api/converstation`, // double check spelling: maybe you meant `/api/conversation`?
+        {}, // send empty body if needed
+        {
+          withCredentials: true,
+          // headers: { Authorization: `Bearer ${token}` }, // uncomment if needed
+        }
+      );
+
+      setConversations(response.data); // Update state with new conversation list
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+    } finally {
+      setLoading(false);
+      onClose();
+    }
   };
 
   const handleConversationPress = (conversation: Conversation) => {
