@@ -17,13 +17,6 @@ import Icon from "react-native-vector-icons/Feather";
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
 
-interface Chat {
-  id: string;
-  title: string;
-  lastMessage?: string;
-  updatedAt: Date;
-}
-
 interface SideDrawerProps {
   isVisible: boolean;
   onClose: () => void;
@@ -45,7 +38,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
-  const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
 
   const backgroundColor = Colors[theme].background;
@@ -67,31 +59,31 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       setConversations(response.data); // Update state with conversations
       setLoading(false);
     } catch (error) {
-      console.error("Error loading chats:", error);
+      console.error("Error loading conversations:", error);
       setLoading(false);
     }
   };
 
-  const handleNewChat = () => {
-    console.log("Creating new chat");
-    // TODO: Create new chat and add to state
+  const handleNewConversation = () => {
+    console.log("Creating new conversation");
+    // TODO: Create new conversation and add to state
     onClose();
   };
 
-  const handleChatPress = (chat: Chat) => {
-    console.log(`Opening chat: ${chat.title}`);
-    // TODO: Navigate to chat or load chat messages
+  const handleConversationPress = (conversation: Conversation) => {
+    console.log(`Opening conversation: ${conversation.title}`);
+    // TODO: Navigate to conversation or load conversation messages
     onClose();
   };
 
-  const handleChatOptions = (chat: Chat) => {
-    console.log(`Opening options for chat: ${chat.title}`);
-    // TODO: Show chat options (rename, delete, etc.)
+  const handleConversationOptions = (conversation: Conversation) => {
+    console.log(`Opening options for conversation: ${conversation.title}`);
+    // TODO: Show conversation options (rename, delete, etc.)
   };
 
   const handleClearConversations = () => {
     console.log("Clearing conversations");
-    setChats([]);
+    setConversations([]);
     // TODO: Call API to clear conversations
     onClose();
   };
@@ -111,10 +103,10 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     onClose();
   };
 
-  const renderChatItem = (chat: Chat) => (
+  const renderconversationItem = (conversation: Conversation) => (
     <TouchableOpacity
-      key={chat.id}
-      onPress={() => handleChatPress(chat)}
+      key={conversation.id}
+      onPress={() => handleConversationPress(conversation)}
       className="flex-row items-center justify-between px-4 py-3"
     >
       <View className="flex-row items-center flex-1">
@@ -124,13 +116,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           className="ml-3 text-base flex-1"
           numberOfLines={1}
         >
-          {chat.title}
+          {conversation.title}
         </Text>
       </View>
       <View className="flex-row items-center">
         <TouchableOpacity
           className="p-1 mr-2"
-          onPress={() => handleChatOptions(chat)}
+          onPress={() => handleConversationOptions(conversation)}
         >
           <Icon name="more-horizontal" size={16} color={iconColor} />
         </TouchableOpacity>
@@ -196,7 +188,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
             contentContainerStyle={{ flexGrow: 1 }}
           >
             <TouchableOpacity
-              onPress={handleNewChat}
+              onPress={handleNewConversation}
               style={{
                 borderBottomColor: theme === "light" ? "#E5E7EB" : "#374151",
               }}
@@ -205,7 +197,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               <View className="flex-row items-center">
                 <Icon name="message-square" size={20} color={iconColor} />
                 <Text style={{ color: textColor }} className="ml-3 text-base">
-                  New Chat
+                  New Conversation
                 </Text>
               </View>
               <Icon name="chevron-right" size={16} color={iconColor} />
@@ -216,21 +208,21 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                 style={{ color: iconColor }}
                 className="px-4 py-2 text-sm font-medium uppercase tracking-wide"
               >
-                Chats
+                Conversations
               </Text>
 
               {loading ? (
                 <View className="px-4 py-3">
                   <Text style={{ color: iconColor }} className="text-sm">
-                    Loading chats...
+                    Loading conversations...
                   </Text>
                 </View>
-              ) : chats.length > 0 ? (
-                chats.map(renderChatItem)
+              ) : conversations.length > 0 ? (
+                conversations.map(renderconversationItem)
               ) : (
                 <View className="px-4 py-3">
                   <Text style={{ color: iconColor }} className="text-sm">
-                    No chats yet. Start a new conversation!
+                    No conversations yet. Start a new conversation!
                   </Text>
                 </View>
               )}
