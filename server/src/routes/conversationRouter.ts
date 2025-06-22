@@ -4,16 +4,14 @@ import {
   createConverstation,
   getConverstationsWithMessage,
   deleteConverstation,
-} from "../controllers/chatsController";
+} from "../controllers/conversationController";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router = express.Router();
 
-// router.get("/", requireAuth, getConverstations);
 router.post("/", requireAuth, createConverstation);
-
-// router.get("/:chatId", requireAuth, getConverstationsWithMessage);
-// router.delete("/:chatId", requireAuth, deleteConverstation);
+router.get("/", requireAuth, getConverstations);
+router.get("/:conversationId", requireAuth, getConverstationsWithMessage);
+router.delete("/:conversationId", requireAuth, deleteConverstation);
 
 export default router;
-

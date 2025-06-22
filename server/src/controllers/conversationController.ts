@@ -17,7 +17,7 @@ export const createConverstation = async (
     const chat = await prisma.conversation.create({
       data: {
         userId: userId.id,
-        title: title || "",
+        title: title || "New Chat",
       },
     });
     if (!chat) {

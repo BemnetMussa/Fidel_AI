@@ -1,17 +1,20 @@
-
 import express from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { createMessage } from "../controllers/messageController";
+import {
+  createMessage,
+  deleteMessage,
+  updateMessage,
+} from "../controllers/messageController";
 
+const router = express.Router();
 
-// const router = express.Router();
-
-
-// router.get("/", requireAuth, createMessage);
-
-router.post("/chat/:conversationId", requireAuth, createMessage);
-
-// router.post("/messageId", requireAuth, updateMessgae);
+router.post(
+  "/conversations/:conversationId/messages",
+  requireAuth,
+  createMessage
+);
+// router.get("/conversations/:conversationId/messages", requireAuth, getMessages); this fetch message
+router.put("/messages/:messageId", requireAuth, updateMessage);
+router.delete("/messages/:messageId", requireAuth, deleteMessage);
 
 export default router;
-
