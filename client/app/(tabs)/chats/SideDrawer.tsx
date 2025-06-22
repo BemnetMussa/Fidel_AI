@@ -1,10 +1,11 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import { baseURL } from "@/lib/auth-client";
+import { handleClearConversations } from "@/reFunction/clearConversation";
 import { useHandleLogout } from "@/reFunction/HandleSignOut";
 import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -26,7 +27,7 @@ interface SideDrawerProps {
   slideAnim: Animated.Value;
 }
 
-interface Conversation {
+export interface Conversation {
   id: number;
   title: string;
   userId: string;
@@ -206,46 +207,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     );
   };
 
-  const handleClearConversations = async () => {
-    Alert.alert(
-      "Clear All Conversations",
-      "Are you sure you want to delete all conversations?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // const token = await AsyncStorage.getItem("jwtToken");
-              const response = await axios.get(`${baseURL}/api/conversations`, {
-                // headers: { Authorization: `Bearer ${token}` },
-                withCredentials: true,
-              });
-              const conversations: Conversation[] = response.data;
-
-              for (const conversation of conversations) {
-                await axios.delete(
-                  `${baseURL}/api/conversations/${conversation.id}`,
-                  {
-                    // headers: { Authorization: `Bearer ${token}` },
-                    withCredentials: true,
-                  }
-                );
-              }
-
-              setConversations([]);
-              onClose();
-            } catch (error) {
-              console.error("Error clearing conversations:", error);
-              Alert.alert("Error", "Failed to clear conversations.");
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleUpgradeToPlus = () => {
     console.log("Upgrading to Plus");
     onClose();
@@ -393,7 +354,9 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               className="border-t pt-2"
             >
               <TouchableOpacity
-                onPress={handleClearConversations}
+                onPress={() =>
+                  handleClearConversations({ setConversations, onClose })
+                }
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="trash-2" size={18} color={iconColor} />
