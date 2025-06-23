@@ -19,7 +19,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
@@ -57,15 +56,20 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const loadConversation = async () => {
     setLoading(true);
-    const token = await AsyncStorage.getItem("jwtToken");
-    if (!token) throw new Error("No authentication token found");
     try {
       const response = await axios.get(`${baseURL}/api/conversation`, {
-        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
 
-      setConversations(response.data); // Update state with conversations
+      // access the 'converstation' array from response
+      const { converstation } = response.data;
+      console.log(converstation);
+
+      if (!Array.isArray(converstation)) {
+        throw new Error("Expected an array of conversations from backend");
+      }
+
+      setConversations(converstation); // Update state with conversations
       setLoading(false);
     } catch (error) {
       console.error("Error loading conversations:", error);
@@ -78,28 +82,28 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem("jwtToken");
-      if (!token) throw new Error("No authentication token found");
-
       const response = await axios.post(
-        `${baseURL}/api/conversation`, // Fixed typo
-        { title: "New Chat" }, // Optional title
+        `${baseURL}/api/conversation`,
+        { title: "New Chat" },
         {
-          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
 
       const { chat: newConversation } = response.data; // Single conversation object
+      //  console.log(newConversation);
       if (!newConversation?.id) {
         throw new Error("Conversation ID missing from server response");
       }
       setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
-      console.log("New conversation response:", response.data);
+      // console.log("New conversation response:", response.data);
+      //  console.log("Conversations:", conversations);
+
+      const chatId = newConversation.id.toString();
 
       router.push({
         pathname: "/chats/[chatId]",
-        params: { chatId: newConversation.id.toString() },
+        params: { chatId },
       });
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -269,7 +273,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                     Loading conversations...
                   </Text>
                 </View>
-              ) : conversations.length > 0 ? (
+              ) : Array.isArray(conversations) && conversations.length > 0 ? (
                 conversations.map(renderconversationItem)
               ) : (
                 <View className="px-4 py-3">

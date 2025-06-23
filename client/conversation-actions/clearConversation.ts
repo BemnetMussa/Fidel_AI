@@ -22,21 +22,29 @@ export const handleClearConversations = async ({
         style: "destructive",
         onPress: async () => {
           try {
-            // const token = await AsyncStorage.getItem("jwtToken");
-            const response = await axios.get(`${baseURL}/api/conversations`, {
-              // headers: { Authorization: `Bearer ${token}` },
+            const response = await axios.get(`${baseURL}/api/conversation`, {
               withCredentials: true,
             });
-            const conversations: Conversation[] = response.data;
+
+            const conversations: Conversation[] = response.data.converstation;
 
             for (const conversation of conversations) {
-              await axios.delete(
-                `${baseURL}/api/conversations/${conversation.id}`,
-                {
-                  // headers: { Authorization: `Bearer ${token}` },
-                  withCredentials: true,
-                }
-              );
+              try {
+                console.log("Deleting conversation:", conversation.id);
+                const response = await axios.delete(
+                  `${baseURL}/api/conversation/${conversation.id}`,
+                  {
+                    withCredentials: true,
+                  }
+                );
+
+                console.log(response);
+              } catch (err) {
+                console.error(
+                  `Failed to delete conversation ${conversation.id}:`,
+                  err
+                );
+              }
             }
 
             setConversations([]);

@@ -116,27 +116,35 @@ export const deleteConverstation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as AuthenticatedRequest).user;
+    const userId = (req as AuthenticatedRequest).user.id;
     const converstationId = parseInt(req.params.id);
+
+    console.log(userId, converstationId);
 
     const existingConversation = await prisma.conversation.findFirst({
       where: {
         id: converstationId,
-        userId: userId.id,
+        userId: userId,
       },
     });
 
     if (!existingConversation) {
-      const error = new Error("Chat not found.");
+      const error = new Error("conversation not found.");
       res.status(404);
       next(error);
       return;
     }
 
+    // Delete all related messages first to avoid foreign key constraint error
+    await prisma.message.deleteMany({
+      where: { conversationId: converstationId, sender: userId },
+    });
+
+    // Then delete the conversation
     await prisma.conversation.delete({
       where: {
         id: converstationId,
-        userId: userId.id,
+        userId: userId,
       },
     });
 

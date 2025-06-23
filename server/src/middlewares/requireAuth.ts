@@ -27,7 +27,8 @@ export const requireAuth = async (
     });
 
     if (!session?.user?.id) {
-      return res.status(403).json({ error: "Unauthorized: No user ID" });
+      res.status(403).json({ error: "Unauthorized: No user ID" });
+      return;
     }
 
     // Attach userId to request for downstream use
@@ -39,6 +40,7 @@ export const requireAuth = async (
     next(); // Continue to the protected route
   } catch (err) {
     console.error("Auth error:", err);
-    return res.status(403).json({ error: "Unauthorized" });
+    res.status(403).json({ error: "Unauthorized" });
+    return;
   }
 };
