@@ -5,9 +5,8 @@ import { handleClearConversations } from "@/conversation-actions/clearConversati
 import { confirmDeleteConversation } from "@/conversation-actions/confirmDeleteConversation";
 import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
 import { promptRenameConversation } from "@/conversation-actions/promptRenameConversation";
-import { NavigationProp } from "@react-navigation/native";
 import axios from "axios";
-import { router, useNavigation } from "expo-router";
+import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -20,6 +19,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
 
@@ -56,9 +57,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const loadConversation = async () => {
     setLoading(true);
+    const token = await AsyncStorage.getItem("jwtToken");
+    if (!token) throw new Error("No authentication token found");
     try {
       const response = await axios.get(`${baseURL}/api/conversation`, {
-        // headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
 
@@ -75,14 +78,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     setLoading(true);
 
     try {
-      // const token = await AsyncStorage.getItem("jwtToken");
-      // if (!token) throw new Error("No authentication token found");
+      const token = await AsyncStorage.getItem("jwtToken");
+      if (!token) throw new Error("No authentication token found");
 
       const response = await axios.post(
         `${baseURL}/api/conversation`, // Fixed typo
         { title: "New Chat" }, // Optional title
         {
-          // headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );

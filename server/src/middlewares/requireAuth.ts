@@ -1,48 +1,27 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { auth } from "../lib/auth";
+import jwt from "jsonwebtoken";
 
-export const requireAuth = async (
+const ACCESS_SECRET = process.env.ACCESS_SECRET!;
+
+export const requireAuth = (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => {
+) => {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Missing token" });
+    return;
+  }
+  const token = header.split(" ")[1];
   try {
-    // Convert req.headers to Headers for Better Auth
-    const headers = new Headers();
-    console.log("Headers received:", req.headers);
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (value) {
-        if (Array.isArray(value)) {
-          value.forEach((v) => headers.append(key, v));
-        } else {
-          headers.append(key, value);
-        }
-      }
-    }
-
-    const session = await auth.api.getSession({
-      query: {
-        disableCookieCache: true,
-      },
-      headers,
-    });
-
-    if (!session || !session.user || !session.user.id) {
-      res.status(401).json({ error: "Not authenticated" });
-      return;
-    }
-    console.log("Session retrieved:", session);
-    // Attach user
-    (req as AuthenticatedRequest).user = {
-      id: session.user.id,
-      email: session.user.email,
-    };
-
+    const decoded = jwt.verify(token, ACCESS_SECRET) as any;
+    (req as any).userId = decoded.userId;
     next();
-  } catch (error) {
-    console.error("Auth error:", error);
-    res.status(401).json({ error: "Unauthorized" });
+  } catch {
+    res.status(403).json({ error: "Invalid token" });
+    return;
   }
 };
-

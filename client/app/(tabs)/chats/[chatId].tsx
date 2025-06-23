@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import axios, { isAxiosError } from "axios";
+import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -23,12 +23,7 @@ import { Colors } from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import Icon from "react-native-vector-icons/Ionicons";
 import { baseURL } from "@/lib/auth-client";
-
-interface Message {
-  sender: "user" | "ai";
-  text: string;
-  timestamp: string;
-}
+import { Message } from "./index";
 
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
@@ -44,7 +39,7 @@ export default function ChatView() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string>("");
 
   useEffect(() => {
     if (typeof chatId === "string") {
@@ -58,9 +53,7 @@ export default function ChatView() {
       console.log("Sending message to Gemini:", userMessage);
 
       const response = await axios.post(
-        conversationId
-          ? `${baseURL}/api/message/${conversationId}`
-          : `${baseURL}/api/message`,
+        conversationId && `${baseURL}/api/message/${conversationId}`,
         { content: userMessage },
         { withCredentials: true }
       );
