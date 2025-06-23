@@ -1,27 +1,44 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { auth } from "../lib/auth";
-import jwt from "jsonwebtoken";
 
-const ACCESS_SECRET = process.env.ACCESS_SECRET!;
-
-export const requireAuth = (
+export const requireAuth = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Missing token" });
-    return;
-  }
-  const token = header.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, ACCESS_SECRET) as any;
-    (req as any).userId = decoded.userId;
-    next();
-  } catch {
-    res.status(403).json({ error: "Invalid token" });
-    return;
+    const headers = new Headers();
+
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value !== undefined) {
+        // Headers require string or string[]
+        if (Array.isArray(value)) {
+          headers.set(key, value.join(","));
+        } else {
+          headers.set(key, value);
+        }
+      }
+    }
+
+    const session = await auth.api.getSession({
+      headers,
+      query: { disableCookieCache: true },
+    });
+
+    if (!session?.user?.id) {
+      return res.status(403).json({ error: "Unauthorized: No user ID" });
+    }
+
+    // Attach userId to request for downstream use
+    (req as AuthenticatedRequest).user = {
+      id: session.user.id,
+      email: session.user.email,
+    };
+
+    next(); // Continue to the protected route
+  } catch (err) {
+    console.error("Auth error:", err);
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
