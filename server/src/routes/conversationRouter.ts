@@ -1,17 +1,18 @@
 import express from "express";
 import {
-  getConverstations,
-  createConverstation,
-  getConverstationsWithMessage,
-  deleteConverstation,
+  getConversations,
+  createConversation,
+  getConversationWithMessages,
+  deleteConversation,
 } from "../controllers/conversationController";
 import { requireAuth } from "../middlewares/requireAuth";
+import { get } from "http";
 
 const router = express.Router();
 
-router.post("/", requireAuth, createConverstation);
-router.get("/", requireAuth, getConverstations);
-router.get("/:conversationId", requireAuth, getConverstationsWithMessage);
-router.delete("/:conversationId", requireAuth, deleteConverstation);
+router.post("/", requireAuth, createConversation);
+router.get("/", requireAuth, getConversations);
+router.get("/:conversationId", requireAuth, getConversationWithMessages);
+router.delete("/:conversationId", requireAuth, deleteConversation);
 
 export default router;

@@ -13,13 +13,14 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
 
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
-    },
-  },
-
+session: {
+  expiresIn: 60 * 60 * 24 * 7, // 7 days
+  updateAge: 60 * 60 * 24,     // refresh every 1 day
+  cookieCache: {
+    enabled: true,
+    maxAge: 5 * 60,            // 5 min cache
+  }
+},
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
@@ -31,6 +32,7 @@ export const auth = betterAuth({
     //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     // },
   },
+  
   plugins: [
     emailOTP({
       otpLength: 4, // 4 digit OTP
@@ -106,3 +108,4 @@ Fidel AI
     },
   },
 });
+

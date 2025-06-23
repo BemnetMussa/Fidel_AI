@@ -120,7 +120,7 @@ export const updateMessage = async (
 
     const updatedMessage = await prisma.message.update({
       where: { id: messageId },
-      data: { content, updatedAt: new Date() },
+      data: { content },
     });
 
     res.status(200).json(updatedMessage);

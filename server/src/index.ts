@@ -5,7 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import converstationRouter from "./routes/conversationRouter";
 import messageRouter from "./routes/messageRoute";
 import cors from "cors";
-import userRouter from "./routes/authRoute";
+// import userRouter from "./routes/authRoute";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ app.use(express.json());
 // Configure CORS middleware
 app.use(
   cors({
-    origin: "exp://192.168.239.60:8081", // or your frontend URL
+    origin: true, // or your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -29,11 +29,12 @@ app.use(
 
 app.use("/api/conversation", converstationRouter);
 app.use("/api/message", messageRouter);
-app.use("/api", userRouter);
+// app.use("/api", userRouter);
+
 
 async function main() {
   app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);    
   });
 }
 
