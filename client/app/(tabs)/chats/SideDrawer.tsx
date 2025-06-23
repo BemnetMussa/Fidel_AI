@@ -55,37 +55,38 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     loadConversation();
   }, []);
 
+
   const loadConversation = async () => {
     setLoading(true);
-    const token = await AsyncStorage.getItem("jwtToken");
-    if (!token) throw new Error("No authentication token found");
     try {
+      console.log("Loading conversations from server...");
       const response = await axios.get(`${baseURL}/api/conversation`, {
-        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-
-      setConversations(response.data); // Update state with conversations
+      
+      console.log("Conversations loaded:", response.data);
+      setConversations(response.data.conversations); // Update state with conversations
+      console.log(conversations.length, "conversations loaded");
+  
       setLoading(false);
     } catch (error) {
       console.error("Error loading conversations:", error);
+
       setLoading(false);
     }
   };
+
 
   const handleNewConversation = async () => {
     console.log("Creating new conversation");
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem("jwtToken");
-      if (!token) throw new Error("No authentication token found");
 
       const response = await axios.post(
         `${baseURL}/api/conversation`, // Fixed typo
         { title: "New Chat" }, // Optional title
         {
-          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
