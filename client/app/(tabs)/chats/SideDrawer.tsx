@@ -1,5 +1,12 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
+import { baseURL } from "@/lib/auth-client";
+import { handleClearConversations } from "@/conversation-actions/clearConversation";
+import { confirmDeleteConversation } from "@/conversation-actions/confirmDeleteConversation";
+import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
+import { promptRenameConversation } from "@/conversation-actions/promptRenameConversation";
+import axios from "axios";
+import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   Animated,
@@ -8,19 +15,14 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
-
-interface Chat {
-  id: string;
-  title: string;
-  lastMessage?: string;
-  updatedAt: Date;
-}
 
 interface SideDrawerProps {
   isVisible: boolean;
@@ -28,13 +30,21 @@ interface SideDrawerProps {
   slideAnim: Animated.Value;
 }
 
+export interface Conversation {
+  id: number;
+  title: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const SideDrawer: React.FC<SideDrawerProps> = ({
   isVisible,
   onClose,
   slideAnim,
 }) => {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
-  const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
 
   const backgroundColor = Colors[theme].background;
@@ -42,66 +52,94 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const iconColor = Colors[theme].icon;
 
   useEffect(() => {
-    loadChats();
+    loadConversation();
   }, []);
 
-  const loadChats = async () => {
+  const loadConversation = async () => {
     setLoading(true);
+    const token = await AsyncStorage.getItem("jwtToken");
+    if (!token) throw new Error("No authentication token found");
     try {
-      // Dummy data - replace with actual API call
-      const mockChats: Chat[] = [
-        {
-          id: "1",
-          title: "What is coding?",
-          lastMessage: "Coding is the process of creating instructions...",
-          updatedAt: new Date(),
-        },
-        {
-          id: "2",
-          title: "What is programming?",
-          lastMessage: "Programming involves writing code...",
-          updatedAt: new Date(),
-        },
-      ];
+      const response = await axios.get(`${baseURL}/api/conversation`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
 
-      // Simulate API delay
-      setTimeout(() => {
-        setChats(mockChats);
-        setLoading(false);
-      }, 500);
-
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/chats');
-      // const chatsData = await response.json();
-      // setChats(chatsData);
+      setConversations(response.data); // Update state with conversations
+      setLoading(false);
     } catch (error) {
-      console.error("Error loading chats:", error);
+      console.error("Error loading conversations:", error);
       setLoading(false);
     }
   };
 
-  const handleNewChat = () => {
-    console.log("Creating new chat");
-    // TODO: Create new chat and add to state
+  const handleNewConversation = async () => {
+    console.log("Creating new conversation");
+    setLoading(true);
+
+    try {
+      const token = await AsyncStorage.getItem("jwtToken");
+      if (!token) throw new Error("No authentication token found");
+
+      const response = await axios.post(
+        `${baseURL}/api/conversation`, // Fixed typo
+        { title: "New Chat" }, // Optional title
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      const { chat: newConversation } = response.data; // Single conversation object
+      if (!newConversation?.id) {
+        throw new Error("Conversation ID missing from server response");
+      }
+      setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
+      console.log("New conversation response:", response.data);
+
+      router.push({
+        pathname: "/chats/[chatId]",
+        params: { chatId: newConversation.id.toString() },
+      });
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  };
+
+  const handleConversationPress = (conversation: Conversation) => {
+    console.log(`Opening conversation: ${conversation.title}`);
+    router.push({
+      pathname: "/chats/[chatId]",
+      params: { chatId: conversation.id.toString() },
+    });
     onClose();
   };
 
-  const handleChatPress = (chat: Chat) => {
-    console.log(`Opening chat: ${chat.title}`);
-    // TODO: Navigate to chat or load chat messages
-    onClose();
-  };
-
-  const handleChatOptions = (chat: Chat) => {
-    console.log(`Opening options for chat: ${chat.title}`);
-    // TODO: Show chat options (rename, delete, etc.)
-  };
-
-  const handleClearConversations = () => {
-    console.log("Clearing conversations");
-    setChats([]); 
-    // TODO: Call API to clear conversations
-    onClose();
+  const handleConversationOptions = (conversation: Conversation) => {
+    console.log(`Opening options for conversation: ${conversation.title}`);
+    // TODO: Show conversation options (rename, delete, etc.)
+    Alert.alert(
+      "Conversation Options",
+      `Manage "${conversation.title}"`,
+      [
+        {
+          text: "Rename",
+          onPress: () =>
+            promptRenameConversation({ conversation, setConversations }),
+        },
+        {
+          text: "Delete",
+          onPress: () =>
+            confirmDeleteConversation({ setConversations, conversation }),
+          style: "destructive",
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleUpgradeToPlus = () => {
@@ -114,15 +152,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     onClose();
   };
 
-  const handleLogout = () => {
-    console.log("Logging out");
-    onClose();
-  };
+  // logout
+  const handleLogout = useHandleLogout();
 
-  const renderChatItem = (chat: Chat) => (
+  const renderconversationItem = (conversation: Conversation) => (
     <TouchableOpacity
-      key={chat.id}
-      onPress={() => handleChatPress(chat)}
+      key={conversation.id}
+      onPress={() => handleConversationPress(conversation)}
       className="flex-row items-center justify-between px-4 py-3"
     >
       <View className="flex-row items-center flex-1">
@@ -132,13 +168,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           className="ml-3 text-base flex-1"
           numberOfLines={1}
         >
-          {chat.title}
+          {conversation.title}
         </Text>
       </View>
       <View className="flex-row items-center">
         <TouchableOpacity
           className="p-1 mr-2"
-          onPress={() => handleChatOptions(chat)}
+          onPress={() => handleConversationOptions(conversation)}
         >
           <Icon name="more-horizontal" size={16} color={iconColor} />
         </TouchableOpacity>
@@ -204,7 +240,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
             contentContainerStyle={{ flexGrow: 1 }}
           >
             <TouchableOpacity
-              onPress={handleNewChat}
+              onPress={handleNewConversation}
               style={{
                 borderBottomColor: theme === "light" ? "#E5E7EB" : "#374151",
               }}
@@ -213,7 +249,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               <View className="flex-row items-center">
                 <Icon name="message-square" size={20} color={iconColor} />
                 <Text style={{ color: textColor }} className="ml-3 text-base">
-                  New Chat
+                  New Conversation
                 </Text>
               </View>
               <Icon name="chevron-right" size={16} color={iconColor} />
@@ -224,21 +260,21 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                 style={{ color: iconColor }}
                 className="px-4 py-2 text-sm font-medium uppercase tracking-wide"
               >
-                Chats
+                Conversations
               </Text>
 
               {loading ? (
                 <View className="px-4 py-3">
                   <Text style={{ color: iconColor }} className="text-sm">
-                    Loading chats...
+                    Loading conversations...
                   </Text>
                 </View>
-              ) : chats.length > 0 ? (
-                chats.map(renderChatItem)
+              ) : conversations.length > 0 ? (
+                conversations.map(renderconversationItem)
               ) : (
                 <View className="px-4 py-3">
                   <Text style={{ color: iconColor }} className="text-sm">
-                    No chats yet. Start a new conversation!
+                    No conversations yet. Start a new conversation!
                   </Text>
                 </View>
               )}
@@ -253,7 +289,9 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               className="border-t pt-2"
             >
               <TouchableOpacity
-                onPress={handleClearConversations}
+                onPress={() =>
+                  handleClearConversations({ setConversations, onClose })
+                }
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="trash-2" size={18} color={iconColor} />
@@ -305,7 +343,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleLogout}
+                onPress={() => handleLogout({ onClose })}
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="log-out" size={18} color="#EF4444" />

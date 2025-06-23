@@ -6,43 +6,39 @@ export const requireAuth = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => {
+) => {
   try {
-    // Convert req.headers to Headers for Better Auth
     const headers = new Headers();
-    console.log("Headers received:", req.headers);
+
     for (const [key, value] of Object.entries(req.headers)) {
-      if (value) {
+      if (value !== undefined) {
+        // Headers require string or string[]
         if (Array.isArray(value)) {
-          value.forEach((v) => headers.append(key, v));
+          headers.set(key, value.join(","));
         } else {
-          headers.append(key, value);
+          headers.set(key, value);
         }
       }
     }
 
     const session = await auth.api.getSession({
-      query: {
-        disableCookieCache: true,
-      },
       headers,
+      query: { disableCookieCache: true },
     });
 
-    if (!session || !session.user || !session.user.id) {
-      res.status(401).json({ error: "Not authenticated" });
-      return;
+    if (!session?.user?.id) {
+      return res.status(403).json({ error: "Unauthorized: No user ID" });
     }
-    console.log("Session retrieved:", session);
-    // Attach user
+
+    // Attach userId to request for downstream use
     (req as AuthenticatedRequest).user = {
       id: session.user.id,
       email: session.user.email,
     };
 
-    next();
-  } catch (error) {
-    console.error("Auth error:", error);
-    res.status(401).json({ error: "Unauthorized" });
+    next(); // Continue to the protected route
+  } catch (err) {
+    console.error("Auth error:", err);
+    return res.status(403).json({ error: "Unauthorized" });
   }
 };
-

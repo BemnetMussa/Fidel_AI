@@ -15,23 +15,15 @@ export const createMessage = async (
   try {
     console.log("Handling chat message request...");
     const userId = (req as AuthenticatedRequest).user.id;
-    const { user } = req.body;
+    const { content } = req.body;
+    let conversationId = req.params.conversationId
+      ? parseInt(req.params.conversationId)
+      : null;
 
-    // Optional: Read conversationId from URL param
-    let conversationId: number | null = null;
-    const paramId = req.params.conversationId;
-
-    let conversation = null;
-
-    // Try to find conversation if a valid param was passed
-    if (paramId && !isNaN(Number(paramId))) {
-      conversationId = parseInt(paramId);
-      console.log("Received conversationId:", conversationId);
-
-      conversation = await prisma.conversation.findUnique({
-        where: { id: conversationId },
-      });
-    }
+    // If no conversationId or invalid, create a new conversation
+    let conversation = conversationId
+      ? await prisma.conversation.findUnique({ where: { id: conversationId } })
+      : null;
 
     // If conversation doesn't exist or doesn't belong to user, create a new one
     if (!conversation || conversation.userId !== userId) {
@@ -45,7 +37,7 @@ export const createMessage = async (
       console.log("New conversation created with ID:", conversationId);
     }
 
-    if (conversationId === null) {
+    if (!conversationId) {
       const error = new Error("Conversation ID is required.");
       res.status(400);
       next(error);
@@ -54,7 +46,7 @@ export const createMessage = async (
     // 1. Save user message
     const userMessage = await prisma.message.create({
       data: {
-        content: user,
+        content,
         sender: "USER",
         conversationId: conversationId!,
       },
@@ -64,7 +56,7 @@ export const createMessage = async (
     const geminiResponse = await axios.post(
       GEMINI_API_URL,
       {
-        contents: [{ parts: [{ text: user }] }],
+        contents: [{ parts: [{ text: content }] }],
       },
       {
         headers: {
@@ -88,6 +80,12 @@ export const createMessage = async (
       },
     });
 
+    // Update conversation timestamp
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() },
+    });
+
     // 4. Return conversation ID and both messages
     res.status(201).json({
       conversationId,
@@ -100,77 +98,78 @@ export const createMessage = async (
   }
 };
 
-// export const updateMessgae = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     const userId = (req as AuthenticatedRequest).user.id;
-//     const chatId = req.params;
-//     const messageId = parseInt(req.params.id);
-//     const { content } = req.body;
+export const updateMessage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const messageId = parseInt(req.params.id);
+    const { content } = req.body;
 
-//     const existingMessage = await prisma.conversation.findFirst({
-//       where: {
-//         id: chatId,
-//         userId: userId,
-//         messages: messageId,
-//       },
-//     });
+    const message = await prisma.message.findUnique({
+      where: { id: messageId },
+      include: { conversation: true },
+    });
 
-//     if (!existingMessage) {
-//       const error = new Error("Message not found.");
-//       res.status(404);
-//       next(error);
-//       return;
-//     }
+    if (!message) {
+      const error = new Error("Message not found.");
+      res.status(404);
+      next(error);
+      return;
+    }
 
-//     await prisma.message.update({
-//       where: { id: messageId },
-//       content,
-//     });
+    const updatedMessage = await prisma.message.update({
+      where: { id: messageId },
+      data: { content },
+    });
 
-//     res.json({ message: "Message deleted successfully." });
-//   } catch (error) {
-//     console.log(error);
-//     next(error);
-//     return;
-//   }
-// };
+    res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.log(error);
+    next(error);
+    return;
+  }
+};
 
-// export const deleteMessage = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     const userId = (req as AuthenticatedRequest).user.id;
-//     const chatId = req.params;
-//     const messageId = parseInt(req.params.id);
+export const deleteMessage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const messageId = parseInt(req.params.id);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-//     const existingMessage = await prisma.message.findFirst({
-//       where: {
-//         id: messageId
+    const message = await prisma.message.findUnique({
+      where: {
+        id: messageId,
+      },
+      include: {
+        conversation: true,
+      },
+    });
 
-//       },
-//     });
+    if (!message) {
+      const error = new Error("Message not found.");
+      res.status(404);
+      next(error);
+      return;
+    }
 
-//     if (!existingMessage) {
-//       const error = new Error("Message not found.");
-//       res.status(404);
-//       next(error);
-//       return;
-//     }
+    if (message.conversation.userId !== userId) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
 
-//     await prisma.message.delete({
-//       where: { id: messageId },
-//     });
+    await prisma.message.delete({
+      where: { id: messageId },
+    });
 
-//     res.json({ message: "Message deleted successfully." });
-//   } catch (error) {
-//     console.log(error);
-//     next(error);
-//     return;
-//   }
-// };
+    res.json({ message: "Message deleted successfully." });
+  } catch (error) {
+    console.log(error);
+    next(error);
+    return;
+  }
+};

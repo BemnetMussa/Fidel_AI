@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { auth } from "./lib/auth";
 import { toNodeHandler } from "better-auth/node";
-import chatRouter from "./routes/chatsRouter";
+import converstationRouter from "./routes/conversationRouter";
 import messageRouter from "./routes/messageRoute";
 import cors from "cors";
 import userRouter from "./routes/authRoute";
@@ -27,7 +27,7 @@ app.use(
   })
 );
 
-app.use("/api/chat", chatRouter);
+app.use("/api/conversation", converstationRouter);
 app.use("/api/message", messageRouter);
 app.use("/api", userRouter);
 

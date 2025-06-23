@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../config/db";
-import { AuthenticatedRequest } from "../types/express";
 
 export const getUsers = async (
   req: Request,
@@ -36,5 +35,3 @@ export const fetchUser = async (
     return;
   }
 };
-
-export default { getUsers };
