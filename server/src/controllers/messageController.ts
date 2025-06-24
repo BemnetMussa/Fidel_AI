@@ -142,7 +142,8 @@ export const updateMessage = async (
   next: NextFunction
 ) => {
   try {
-    const messageId = parseInt(req.params.id);
+    const messageId = parseInt(req.params.messageId);
+    console.log(messageId);
     const { content } = req.body;
 
     const message = await prisma.message.findUnique({

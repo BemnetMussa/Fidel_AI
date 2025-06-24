@@ -146,3 +146,45 @@ export const deleteConverstation = async (
     return;
   }
 };
+
+export const updateConversation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const conversationId = parseInt(req.params.conversationId);
+
+  const { title } = req.body;
+
+  console.log("this is the income data", conversationId, title);
+
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: conversationId,
+      },
+    });
+
+    if (!conversation) {
+      const error = new Error("conversation does not exist");
+      res.status(401);
+      next(error);
+    }
+
+    const updateConversation = await prisma.conversation.update({
+      where: {
+        id: conversationId,
+      },
+      data: {
+        title: title,
+      },
+    });
+
+    res.status(200).json({
+      updateConversation,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
