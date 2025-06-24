@@ -55,7 +55,7 @@ export default function Welcome() {
       <View className="flex-1 mx-4 rounded-t-3xl px-6">
         {/* Centered Welcome Message */}
         <View className="flex-1 justify-center items-center">
-          <Text className="text-5xl font-extrabold text-center mb-4">
+          <Text className={`text-5xl ${theme === "dark" ? "text-white" : "text-black"} font-extrabold text-center mb-4`}>
             Welcome to pAI{/* ወደ pAI እንኳን ደህና{"\n"}መጡ። */}
           </Text>
         </View>

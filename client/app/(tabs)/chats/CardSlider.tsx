@@ -1,10 +1,6 @@
+import { useTheme } from "@/contexts/ThemeContext";
 import React from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 
 const data = [
   {
@@ -19,6 +15,8 @@ const data = [
 ];
 
 const CardSlider = () => {
+  const { theme } = useTheme();
+
   return (
     <View className="absolute bottom-5 w-full">
       <FlatList
@@ -28,11 +26,19 @@ const CardSlider = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
         renderItem={({ item }) => (
-          <TouchableOpacity className="bg-gray-100 p-4 rounded-xl mr-3 w-[220px] h-[80px] justify-center shadow-sm shadow-black/10">
-            <Text className="text-xl font-extrabold text-gray-900 mb-1">
+          <TouchableOpacity
+            className={`${theme === "dark" ? "bg-[#2e2e2e]" : "bg-[#efefef]"} p-4 rounded-xl mr-3 w-[220px] h-[80px] justify-center shadow-sm shadow-black/10`}
+          >
+            <Text
+              className={`text-xl font-extrabold ${theme === "dark" ? "text-white" : "text-black"} mb-1`}
+            >
               {item.title}
             </Text>
-            <Text className="text-s text-gray-600">{item.subtitle}</Text>
+            <Text
+              className={`text-s ${theme === "dark" ? "text-white" : "text-black"}`}
+            >
+              {item.subtitle}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -41,4 +47,3 @@ const CardSlider = () => {
 };
 
 export default CardSlider;
-

@@ -1,14 +1,21 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import React, { useState } from "react";
-import { Animated, Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import {
+  Animated,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import SideDrawer from "./SideDrawer";
-import { router } from "expo-router";
+import { useRouter, useLocalSearchParams, usePathname } from "expo-router";
 
 type AppRoutes =
   | ""
@@ -19,7 +26,8 @@ type AppRoutes =
   | "settings"
   | "help"
   | "logout"
-  | "theme";
+  | "theme"
+  | "refresh";
 
 const NavBar = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -28,6 +36,8 @@ const NavBar = () => {
   const [slideAnim] = useState(new Animated.Value(0));
   const { theme, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
@@ -71,10 +81,17 @@ const NavBar = () => {
     router.replace("/(tabs)/chats");
   };
 
+  const handleRefresh = () => {
+    console.log("Refreshing:", pathname);
+    router.replace(pathname as any); // Replaces current route and reloads screen
+  };
+
   const handleDropdownItemPress = (action: AppRoutes) => {
     setDropdownVisible(false);
     if (action === "theme") {
       toggleTheme();
+    } else if (action === "refresh") {
+      handleRefresh();
     }
     setTimeout(() => {
       // Add routing logic here if needed
@@ -144,6 +161,15 @@ const NavBar = () => {
             Settings
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDropdownItemPress("refresh")}
+          className="flex-row items-center px-4 py-3"
+        >
+          <Icon name="refresh-ccw" size={16} color={iconColor} />
+          <Text style={{ color: textColor }} className="ml-3">
+            Refresh
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => handleDropdownItemPress("help")}
@@ -184,7 +210,10 @@ const NavBar = () => {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleLogoPress}>
-            <Text style={{ color: textColor }} className="text-xl font-semibold">
+            <Text
+              style={{ color: textColor }}
+              className="text-xl font-semibold"
+            >
               pAI
             </Text>
           </TouchableOpacity>
