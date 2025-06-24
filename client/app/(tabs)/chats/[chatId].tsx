@@ -217,7 +217,7 @@ export default function ChatView() {
           withCredentials: true,
         });
 
-        const { messages } = response.data; // assuming your backend returns a list
+        const { messages } = response.data;
         setMessages(messages);
       } catch (error) {
         console.error("Error loading messages:", error);

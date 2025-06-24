@@ -1,6 +1,7 @@
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
 import { baseURL } from "@/lib/auth-client";
 import axios from "axios";
+import { router } from "expo-router";
 import { Alert } from "react-native";
 
 interface ClearConversationsProps {
@@ -22,33 +23,28 @@ export const handleClearConversations = async ({
         style: "destructive",
         onPress: async () => {
           try {
-            const response = await axios.get(`${baseURL}/api/conversation`, {
+            const response = await axios.delete(`${baseURL}/api/conversation`, {
               withCredentials: true,
             });
 
-            const conversations: Conversation[] = response.data.converstation;
-
-            for (const conversation of conversations) {
-              try {
-                console.log("Deleting conversation:", conversation.id);
-                const response = await axios.delete(
-                  `${baseURL}/api/conversation/${conversation.id}`,
-                  {
-                    withCredentials: true,
-                  }
-                );
-
-                console.log(response);
-              } catch (err) {
-                console.error(
-                  `Failed to delete conversation ${conversation.id}:`,
-                  err
-                );
-              }
+            if (!response || response.status !== 200) {
+              console.log("Error deleting conversations");
+              Alert.alert("Error", "Something went wrong while deleting.");
+              return;
             }
 
+            console.log("Conversations deleted:", response.data);
+
+            // Clear conversations
             setConversations([]);
-            onClose();
+
+            // Navigate to chats page
+            router.replace("/chats");
+
+            // Delay closing the drawer slightly to allow the UI to re-render
+            setTimeout(() => {
+              onClose();
+            }, 100);
           } catch (error) {
             console.error("Error clearing conversations:", error);
             Alert.alert("Error", "Failed to clear conversations.");
