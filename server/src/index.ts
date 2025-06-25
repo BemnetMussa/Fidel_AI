@@ -21,11 +21,12 @@ app.use(express.json());
 // Configure CORS middleware
 app.use(
   cors({
-    origin: "exp://192.168.239.60:8081", // or your frontend URL
+    origin: "exp://192.168.250.30:8081", // or your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 
 app.use("/api/conversation", converstationRouter);
 app.use("/api/message", messageRouter);
