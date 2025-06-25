@@ -1,6 +1,7 @@
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
 import { baseURL } from "@/lib/auth-client";
 import axios from "axios";
+import { router } from "expo-router";
 import { Alert } from "react-native";
 
 interface ClearConversationsProps {
@@ -22,25 +23,28 @@ export const handleClearConversations = async ({
         style: "destructive",
         onPress: async () => {
           try {
-            // const token = await AsyncStorage.getItem("jwtToken");
-            const response = await axios.get(`${baseURL}/api/conversations`, {
-              // headers: { Authorization: `Bearer ${token}` },
+            const response = await axios.delete(`${baseURL}/api/conversation`, {
               withCredentials: true,
             });
-            const conversations: Conversation[] = response.data;
 
-            for (const conversation of conversations) {
-              await axios.delete(
-                `${baseURL}/api/conversations/${conversation.id}`,
-                {
-                  // headers: { Authorization: `Bearer ${token}` },
-                  withCredentials: true,
-                }
-              );
+            if (!response || response.status !== 200) {
+              console.log("Error deleting conversations");
+              Alert.alert("Error", "Something went wrong while deleting.");
+              return;
             }
 
+            console.log("Conversations deleted:", response.data);
+
+            // Clear conversations
             setConversations([]);
-            onClose();
+
+            // Navigate to chats page
+            router.replace("/chats");
+
+            // Delay closing the drawer slightly to allow the UI to re-render
+            setTimeout(() => {
+              onClose();
+            }, 100);
           } catch (error) {
             console.error("Error clearing conversations:", error);
             Alert.alert("Error", "Failed to clear conversations.");

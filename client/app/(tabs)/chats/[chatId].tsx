@@ -34,6 +34,7 @@ export default function ChatView() {
   const iconColor = Colors[theme].icon;
   const tintColor = Colors[theme].tint;
 
+  const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -46,6 +47,47 @@ export default function ChatView() {
       setConversationId(chatId);
     }
   }, [chatId]);
+
+  useEffect(() => {
+    loadingMessage();
+  }, [conversationId]);
+
+  const loadingMessage = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${baseURL}/api/message/${conversationId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      // console.log(response.data);
+
+      // access the 'converstation' array from response
+      const { messages } = response.data;
+      console.log("fetching message from db", messages);
+
+      if (!Array.isArray(messages)) {
+        throw new Error("Expected an array of message from backend");
+      }
+
+      // formmating according to the setMessage  state
+      const { messages: rawMessages } = response.data;
+
+      const formattedMessages = rawMessages.map((msg: any) => ({
+        sender: msg.sender.toLowerCase(),
+        text: msg.content,
+        timestamp: msg.createdAt,
+      }));
+
+      setMessages(formattedMessages);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+      setLoading(false);
+    }
+  };
 
   const sendMessageToGemini = async (userMessage: string) => {
     try {
@@ -94,14 +136,6 @@ export default function ChatView() {
   const sendMessage = async () => {
     if (input.trim()) {
       const userMessage = input.trim();
-
-      const newUserMessage: Message = {
-        sender: "user",
-        text: userMessage,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, newUserMessage]);
       setInput("");
 
       await sendMessageToGemini(userMessage);
@@ -183,7 +217,7 @@ export default function ChatView() {
           withCredentials: true,
         });
 
-        const { messages } = response.data; // assuming your backend returns a list
+        const { messages } = response.data;
         setMessages(messages);
       } catch (error) {
         console.error("Error loading messages:", error);
@@ -238,7 +272,7 @@ export default function ChatView() {
                         : textColor,
                   }}
                 >
-                  {msg.text.trim()}
+                  {(msg.text || "").trim()}
                 </Text>
               </View>
               <View className="flex-row">

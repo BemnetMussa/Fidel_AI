@@ -4,7 +4,7 @@ import { baseURL } from "@/lib/auth-client";
 import { handleClearConversations } from "@/conversation-actions/clearConversation";
 import { confirmDeleteConversation } from "@/conversation-actions/confirmDeleteConversation";
 import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
-import { promptRenameConversation } from "@/conversation-actions/promptRenameConversation";
+import { renameConversationTitle } from "@/conversation-actions/renameConversation";
 import axios from "axios";
 import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -16,10 +16,11 @@ import {
   View,
   ScrollView,
   Alert,
+  TextInput,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
@@ -46,6 +47,10 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { theme, toggleTheme } = useTheme();
   const [loading, setLoading] = useState(false);
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+  const [newTitle, setNewTitle] = useState("");
 
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
@@ -57,15 +62,20 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const loadConversation = async () => {
     setLoading(true);
-    const token = await AsyncStorage.getItem("jwtToken");
-    if (!token) throw new Error("No authentication token found");
     try {
       const response = await axios.get(`${baseURL}/api/conversation`, {
-        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
 
-      setConversations(response.data); // Update state with conversations
+      // access the 'converstation' array from response
+      const { converstation } = response.data;
+      console.log(converstation);
+
+      if (!Array.isArray(converstation)) {
+        throw new Error("Expected an array of conversations from backend");
+      }
+
+      setConversations(converstation); // Update state with conversations
       setLoading(false);
     } catch (error) {
       console.error("Error loading conversations:", error);
@@ -78,28 +88,28 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem("jwtToken");
-      if (!token) throw new Error("No authentication token found");
-
       const response = await axios.post(
-        `${baseURL}/api/conversation`, // Fixed typo
-        { title: "New Chat" }, // Optional title
+        `${baseURL}/api/conversation`,
+        { title: "New Chat" },
         {
-          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
 
       const { chat: newConversation } = response.data; // Single conversation object
+      //  console.log(newConversation);
       if (!newConversation?.id) {
         throw new Error("Conversation ID missing from server response");
       }
       setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
-      console.log("New conversation response:", response.data);
+      // console.log("New conversation response:", response.data);
+      //  console.log("Conversations:", conversations);
+
+      const chatId = newConversation.id.toString();
 
       router.push({
         pathname: "/chats/[chatId]",
-        params: { chatId: newConversation.id.toString() },
+        params: { chatId },
       });
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -119,16 +129,17 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   };
 
   const handleConversationOptions = (conversation: Conversation) => {
-    console.log(`Opening options for conversation: ${conversation.title}`);
-    // TODO: Show conversation options (rename, delete, etc.)
     Alert.alert(
       "Conversation Options",
-      `Manage "${conversation.title}"`,
+      `Manage \"${conversation.title}\"`,
       [
         {
           text: "Rename",
-          onPress: () =>
-            promptRenameConversation({ conversation, setConversations }),
+          onPress: () => {
+            setSelectedConversation(conversation);
+            setNewTitle(conversation.title);
+            setRenameModalVisible(true);
+          },
         },
         {
           text: "Delete",
@@ -152,10 +163,31 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     onClose();
   };
 
+  // rename
+  const handleRename = async () => {
+    if (!selectedConversation || !newTitle.trim()) return;
+    try {
+      await renameConversationTitle(selectedConversation.id, newTitle.trim());
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === selectedConversation.id
+            ? { ...c, title: newTitle.trim() }
+            : c
+        )
+      );
+      setRenameModalVisible(false);
+      setSelectedConversation(null);
+      setNewTitle("");
+    } catch (err) {
+      console.error("Rename failed:", err);
+      Alert.alert("Error", "Could not rename conversation.");
+    }
+  };
+
   // logout
   const handleLogout = useHandleLogout();
 
-  const renderconversationItem = (conversation: Conversation) => (
+  const renderConversationItem = (conversation: Conversation) => (
     <TouchableOpacity
       key={conversation.id}
       onPress={() => handleConversationPress(conversation)}
@@ -269,8 +301,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                     Loading conversations...
                   </Text>
                 </View>
-              ) : conversations.length > 0 ? (
-                conversations.map(renderconversationItem)
+              ) : Array.isArray(conversations) && conversations.length > 0 ? (
+                conversations.map(renderConversationItem)
               ) : (
                 <View className="px-4 py-3">
                   <Text style={{ color: iconColor }} className="text-sm">
@@ -353,6 +385,38 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           </ScrollView>
         </SafeAreaView>
       </Animated.View>
+
+      {/* Rename Modal since Alert.prompt does support cross plateform */}
+      <Modal
+        visible={renameModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 px-4">
+          <View className="bg-white p-4 rounded-lg w-full max-w-md">
+            <Text className="text-lg font-semibold mb-2">
+              Rename Conversation
+            </Text>
+            <TextInput
+              value={newTitle}
+              onChangeText={setNewTitle}
+              placeholder="Enter new title"
+              className="border border-gray-300 rounded px-3 py-2 mb-4"
+            />
+            <View className="flex-row justify-between">
+              <TouchableOpacity onPress={() => setRenameModalVisible(false)}>
+                <Text className="text-gray-500 text-base">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleRename}>
+                <Text className="text-blue-600 font-semibold text-base">
+                  Save
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };

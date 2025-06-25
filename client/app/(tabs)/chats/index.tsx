@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
+  StyleSheet,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import NavBar from "./NavBar";
@@ -27,6 +29,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const { theme } = useTheme();
   const textColor = Colors[theme].text;
@@ -45,12 +48,12 @@ export default function App() {
       console.log("Sending message to Gemini:", userMessage);
 
       const response = await axios.post(
-        `${baseURL}/api/conversation`,
+        `${baseURL}/api/message`,
         { content: userMessage },
         { withCredentials: true }
       );
 
-      const newChatId: string = response.data.newChatId;
+      const newChatId: string = response.data.conversationId;
 
       if (!newChatId) throw new Error("No new chat ID returned from server");
 
@@ -67,6 +70,7 @@ export default function App() {
   };
 
   const sendMessage = async () => {
+    console.log("sending message");
     if (input.trim()) {
       const userMessage = input.trim();
 
@@ -82,6 +86,31 @@ export default function App() {
       await sendMessageToCreateNewConversation(userMessage);
     }
   };
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+
+  const getInputContainerStyle = () => ({
+    backgroundColor: backgroundColor,
+    borderTopColor: theme === "light" ? "#D1D5DB" : "#374151",
+  });
 
   return (
     <SafeAreaView
@@ -116,41 +145,50 @@ export default function App() {
               <Text className="text-sm text-gray-600 mb-2">አውቶማቲክ አሰራር</Text>
               <Text className="text-xs text-gray-500">ሀ ዳ ዓመት ልክ ስለ</Text>
             </View>
-
             {/* Input Field */}
-            <View className="flex-row items-center space-x-3">
-              <TextInput
-                className="flex-1 px-3 py-2 rounded-md border"
-                style={[getInputStyle(), { maxHeight: 70 }]}
-                placeholder="Ask anything..."
-                placeholderTextColor={iconColor}
-                value={input}
-                onChangeText={setInput}
-                returnKeyType="send"
-                onSubmitEditing={sendMessage}
-                editable={!isLoading}
-                multiline={true}
-                textAlignVertical="top"
-              />
-              <TouchableOpacity
-                onPress={sendMessage}
-                className={`pl-2 ${
-                  isLoading ? "opacity-50" : "active:opacity-80"
-                }`}
-                disabled={isLoading}
-              >
-                <MaterialCommunityIcons
-                  name="send"
-                  size={20}
-                  color={
-                    isLoading
-                      ? iconColor
-                      : theme === "light"
-                        ? "black"
-                        : "white"
-                  }
+            <View
+              className="border-t px-4"
+              style={[
+                styles.inputContainer,
+                getInputContainerStyle(),
+                Platform.OS === "android" &&
+                  keyboardHeight > 0 && {
+                    bottom: keyboardHeight,
+                  },
+              ]}
+            >
+              <View className="flex-row items-center space-x-3">
+                <TextInput
+                  className="flex-1 px-3 py-2 rounded-md border"
+                  style={[getInputStyle(), { maxHeight: 70 }]}
+                  placeholder="Ask anything..."
+                  placeholderTextColor={iconColor}
+                  value={input}
+                  onChangeText={setInput}
+                  returnKeyType="send"
+                  onSubmitEditing={sendMessage}
+                  editable={!isLoading}
+                  multiline={true}
+                  textAlignVertical="top"
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={sendMessage}
+                  className={`pl-2 ${isLoading ? "opacity-50" : "active:opacity-80"} `}
+                  disabled={isLoading}
+                >
+                  <MaterialCommunityIcons
+                    name="send"
+                    size={20}
+                    color={
+                      isLoading
+                        ? iconColor
+                        : theme === "light"
+                          ? "black"
+                          : "white"
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -158,3 +196,35 @@ export default function App() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  inputContainer: {
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 34 : 12,
+    position: Platform.OS === "android" ? "absolute" : "relative",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  userBubble: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+    color: "white",
+  },
+  aiBubble: {
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.15,
+    // shadowRadius: 1.41,
+    // elevation: 2,
+  },
+});

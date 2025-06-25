@@ -97,13 +97,53 @@ export const createMessage = async (
   }
 };
 
+// get the message form db and send to client
+export const getMessages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    let conversationId = parseInt(req.params.conversationId);
+
+    const userId = (req as AuthenticatedRequest).user.id;
+
+    const messages = await prisma.message.findMany({
+      where: {
+        conversationId,
+        // sender: userId,
+      },
+      orderBy: {
+        createdAt: "asc", // Optional: chronological order
+      },
+    });
+
+    console.log(messages);
+
+    if (!messages) {
+      const error = new Error("messages are not found");
+      res.status(400);
+      next(error);
+      return;
+    }
+
+    res.status(200).json({
+      messages,
+    });
+  } catch (error) {
+    next(error);
+    return;
+  }
+};
+
 export const updateMessage = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const messageId = parseInt(req.params.id);
+    const messageId = parseInt(req.params.messageId);
+    console.log(messageId);
     const { content } = req.body;
 
     const message = await prisma.message.findUnique({
@@ -120,7 +160,7 @@ export const updateMessage = async (
 
     const updatedMessage = await prisma.message.update({
       where: { id: messageId },
-      data: { content, updatedAt: new Date() },
+      data: { content },
     });
 
     res.status(200).json(updatedMessage);

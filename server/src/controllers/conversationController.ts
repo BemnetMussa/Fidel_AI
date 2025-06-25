@@ -116,27 +116,26 @@ export const deleteConverstation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as AuthenticatedRequest).user;
-    const converstationId = parseInt(req.params.id);
+    const userId = (req as AuthenticatedRequest).user.id;
 
-    const existingConversation = await prisma.conversation.findFirst({
+    // find all conversation
+    const conversation = await prisma.conversation.findMany({
       where: {
-        id: converstationId,
-        userId: userId.id,
+        userId,
       },
     });
 
-    if (!existingConversation) {
-      const error = new Error("Chat not found.");
-      res.status(404);
-      next(error);
-      return;
-    }
+    const conversationIds = conversation.map((c) => c.id);
 
-    await prisma.conversation.delete({
+    await prisma.message.deleteMany({
       where: {
-        id: converstationId,
-        userId: userId.id,
+        conversationId: { in: conversationIds },
+      },
+    });
+
+    await prisma.conversation.deleteMany({
+      where: {
+        id: { in: conversationIds },
       },
     });
 
@@ -145,5 +144,47 @@ export const deleteConverstation = async (
     console.log(error);
     next(error);
     return;
+  }
+};
+
+export const updateConversation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const conversationId = parseInt(req.params.conversationId);
+
+  const { title } = req.body;
+
+  console.log("this is the income data", conversationId, title);
+
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: conversationId,
+      },
+    });
+
+    if (!conversation) {
+      const error = new Error("conversation does not exist");
+      res.status(401);
+      next(error);
+    }
+
+    const updateConversation = await prisma.conversation.update({
+      where: {
+        id: conversationId,
+      },
+      data: {
+        title: title,
+      },
+    });
+
+    res.status(200).json({
+      updateConversation,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
 };
