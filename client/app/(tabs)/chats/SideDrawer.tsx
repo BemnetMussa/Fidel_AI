@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
+import { getCachedConversation, saveConversation } from "@/lib/storage";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
@@ -56,32 +57,34 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
 
+  // getting conversation from async-storage and fetch conversation from db
+
   useEffect(() => {
-    loadConversation();
-  }, []);
+    const loadConversations = async () => {
+      const cached = await getCachedConversation();
+      if (cached.length) setConversations(cached);
 
-  const loadConversation = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${baseURL}/api/conversation`, {
-        withCredentials: true,
-      });
+      try {
+        setLoading(true);
+        const response = await axios.get(`${baseURL}/api/conversation`, {
+          withCredentials: true,
+        });
 
-      // access the 'converstation' array from response
-      const { converstation } = response.data;
-      console.log(converstation);
+        const { converstation } = response.data;
 
-      if (!Array.isArray(converstation)) {
-        throw new Error("Expected an array of conversations from backend");
+        if (Array.isArray(converstation)) {
+          setConversations(converstation);
+          await saveConversation(converstation);
+        }
+      } catch (error) {
+        console.error("Error loading conversations:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setConversations(converstation); // Update state with conversations
-      setLoading(false);
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-      setLoading(false);
-    }
-  };
+    loadConversations();
+  }, []);
 
   const handleNewConversation = async () => {
     console.log("Creating new conversation");
@@ -104,6 +107,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
       // console.log("New conversation response:", response.data);
       //  console.log("Conversations:", conversations);
+
+      await saveConversation([newConversation]);
 
       const chatId = newConversation.id.toString();
 

@@ -18,7 +18,7 @@ export default function ChatView() {
 
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
-    const loadCachedAndFetch = async () => {
+    const loadCachedAndFetchMessage = async () => {
       const cached = await getCachedMessages();
       if (cached.length) {
         setMessages(cached);
@@ -39,7 +39,7 @@ export default function ChatView() {
       }
     };
 
-    loadCachedAndFetch();
+    loadCachedAndFetchMessage();
   }, [chatId]);
 
   // Fetch fresh messages from backend
