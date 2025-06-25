@@ -15,8 +15,10 @@ import { Colors } from "@/constants/Colors";
 import * as Clipboard from "expo-clipboard";
 import Icon from "react-native-vector-icons/Ionicons";
 
+export type Sender = "user" | "ai";
+
 export interface Message {
-  sender: "user" | "ai";
+  sender: Sender;
   text: string;
   timestamp: string;
 }
