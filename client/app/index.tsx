@@ -1,44 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { View, Text, Image, Alert } from "react-native";
+import { View, Text, Image, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { authClient } from "@/lib/auth-client";
 
+// Define the response type for authClient.getSession()
+interface SessionResponse {
+  data: {
+    session?: {
+      token?: string;
+    };
+    user?: {
+      id?: string;
+      [key: string]: unknown;
+    };
+  } | null;
+  error?: {
+    message?: string;
+    [key: string]: unknown;
+  } | null;
+}
+
 export default function SplashScreen() {
   const router = useRouter();
-  const [session, setSession] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // getting session form better auth
   useEffect(() => {
-    const getSession = async () => {
-      const { data: session } = await authClient.getSession();
-      const token = session?.session.token;
+    const init = async () => {
+      try {
+        // Fetch session with a timeout
+        const result: SessionResponse = await Promise.race([
+          authClient.getSession(),
+          new Promise<never>(() =>
+            setTimeout(() => {
+              console.log(new Error("Session check timed out"));
+            }, 1000)
+          ),
+        ]);
 
-      if (!token) {
-        return Alert.alert("session has expire");
+        console.log("i am out");
+
+        const { data, error } = result;
+
+        if (error || !data?.session?.token) {
+          console.warn("No valid session found:", error?.message || "No token");
+          router.replace("/welcome");
+        } else {
+          console.log("TOKEN:", data.session.token);
+          router.replace("/chats");
+        }
+      } catch (err) {
+        console.error("Error getting session:", err);
+        router.replace("/welcome");
+      } finally {
+        setIsLoading(false);
       }
-      setSession(token);
     };
 
-    getSession();
-  }, []);
-
-  useEffect(() => {
-    // Simulate app initialization
-    const timer = setTimeout(() => {
-      // TODO: Check if user is authenticated
-      const isAuthenticated = session; // This should come from your auth state
-
-      if (isAuthenticated) {
-        router.replace("/chats");
-      } else {
-        router.replace("/welcome");
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
+    init();
+  }, [router]);
 
   return (
     <View className="flex-1 bg-white items-center justify-center px-6">
@@ -54,10 +75,16 @@ export default function SplashScreen() {
           accessible
           accessibilityLabel="Fidel Logo"
         />
-
         <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-          እንኳን ወደ ፊደል AI በደና መጡ!{" "}
+          እንኳን ወደ ፊደል AI በደና መጡ!
         </Text>
+        {isLoading && (
+          <ActivityIndicator
+            size="large"
+            color="#0000ff"
+            style={{ marginTop: 16 }}
+          />
+        )}
       </View>
 
       <View className="pb-8">

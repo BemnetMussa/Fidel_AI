@@ -2,14 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Message } from "../app/(tabs)/chats/ChatMessages";
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
-import { jsonParse } from "better-auth/react";
 
 const STORAGE_KEY = "chat_messages";
 
 // this logic save message in async-storage
 export const saveMessages = async (messages: Message[]) => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    const savedMes = await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(messages)
+    );
+
+    console.log("get cached message is calling:", savedMes);
   } catch (error) {
     console.error("Failed to save messages:", error);
   }
@@ -22,6 +26,8 @@ export const getCachedMessages = async (): Promise<Message[]> => {
     if (!json) return [];
 
     const parsed = JSON.parse(json) as Message[];
+
+    console.log("get cached message is calling:", parsed);
 
     // Normalize sender values
     return parsed.map((m) => ({
@@ -37,7 +43,12 @@ export const getCachedMessages = async (): Promise<Message[]> => {
 // save conversation in async-storage
 export const saveConversation = async (conversation: Conversation[]) => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(conversation));
+    const savedCon = await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(conversation)
+    );
+
+    console.log(savedCon);
   } catch (error) {
     console.error("Failed to save conversation:", error);
   }
@@ -51,6 +62,8 @@ export const getCachedConversation = async () => {
     if (!json) return [];
 
     const parsed = JSON.parse(json) as Conversation[];
+
+    console.log("get cached conversation is calling:", parsed);
 
     return parsed as Conversation[];
   } catch (error) {
