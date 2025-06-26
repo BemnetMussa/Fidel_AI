@@ -10,13 +10,13 @@ export const createConverstation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as AuthenticatedRequest).user;
+    const userId = (req as AuthenticatedRequest).user.id;
     const { title } = req.body;
 
-    console.log("Creating chat for user:", userId.id, "with title:", title);
+    console.log("Creating chat for user:", userId, "with title:", title);
     const chat = await prisma.conversation.create({
       data: {
-        userId: userId.id,
+        userId,
         title: title || "New Chat",
       },
     });
@@ -44,24 +44,23 @@ export const getConverstations = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as AuthenticatedRequest).user;
+    const userId = (req as AuthenticatedRequest).user?.id;
 
-    const converstation = await prisma.conversation.findMany({
-      where: {
-        userId: userId.id,
-      },
+    const conversations = await prisma.conversation.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
     });
 
-    if (!converstation) {
-      const error = new Error("Not Converstation created");
+    if (!conversations) {
+      const error = new Error("Not conversations created");
       res.status(404);
       next(error);
       return;
     }
 
     res.status(201).json({
-      message: "all Converstation was fetched",
-      converstation,
+      message: "all conversations was fetched",
+      conversations,
     });
   } catch (error) {
     console.log(error);
@@ -77,13 +76,13 @@ export const getConverstationsWithMessage = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as AuthenticatedRequest).user;
+    const userId = (req as AuthenticatedRequest).user.id;
     const converstationId = req.params;
 
     const converstationWithMessage = await prisma.conversation.findFirst({
       where: {
         id: converstationId,
-        userId: userId.id,
+        userId,
       },
       include: {
         messages: {

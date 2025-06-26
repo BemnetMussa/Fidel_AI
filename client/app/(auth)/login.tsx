@@ -58,14 +58,19 @@ export default function LoginScreen() {
           password: data.password,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             (global as any).showAppToast({
               message: "Logged in successfully!",
               type: "success",
               duration: 3000,
             });
 
-            router.replace("/chats");
+            const token = await authClient.getSession();
+
+            if (token) {
+              console.log(token.data?.session);
+              router.replace("/chats");
+            }
           },
           onError: ({ error }) => {
             setError(error.message);
