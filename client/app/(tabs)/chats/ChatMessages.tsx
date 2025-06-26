@@ -18,6 +18,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 export type Sender = "user" | "ai";
 
 export interface Message {
+  id?: string;
   sender: Sender;
   text: string;
   timestamp: string;

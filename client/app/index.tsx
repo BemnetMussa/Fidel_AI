@@ -78,13 +78,7 @@ export default function SplashScreen() {
         <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
           እንኳን ወደ ፊደል AI በደና መጡ!
         </Text>
-        {isLoading && (
-          <ActivityIndicator
-            size="large"
-            color="#0000ff"
-            style={{ marginTop: 16 }}
-          />
-        )}
+        {/* remove loading ui */}
       </View>
 
       <View className="pb-8">

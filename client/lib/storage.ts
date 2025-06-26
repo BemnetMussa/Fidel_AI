@@ -1,38 +1,38 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { Message } from "../app/(tabs)/chats/ChatMessages";
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
 
-const STORAGE_KEY = "chat_messages";
+// Keys
+const MESSAGE_KEY = "chat_messages";
+const CONVERSATION_KEY = "chat_conversations";
 
-// this logic save message in async-storage
+// Save messages
 export const saveMessages = async (messages: Message[]) => {
   try {
-    const savedMes = await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(messages)
-    );
+    const existing = await getCachedMessages();
+    const merged = [
+      ...existing,
+      ...messages.filter((msg) => !existing.find((m) => m.id === msg.id)),
+    ];
 
-    console.log("get cached message is calling:", savedMes);
+    await AsyncStorage.setItem(MESSAGE_KEY, JSON.stringify(merged));
+    console.log("Messages saved.");
   } catch (error) {
     console.error("Failed to save messages:", error);
   }
 };
 
-// this logic get message in async-storage
+// Get cached messages
 export const getCachedMessages = async (): Promise<Message[]> => {
   try {
-    const json = await AsyncStorage.getItem(STORAGE_KEY);
+    const json = await AsyncStorage.getItem(MESSAGE_KEY);
     if (!json) return [];
 
     const parsed = JSON.parse(json) as Message[];
 
-    console.log("get cached message is calling:", parsed);
-
-    // Normalize sender values
     return parsed.map((m) => ({
       ...m,
-      sender: m.sender === "user" ? "user" : "ai", // default fallback
+      sender: m.sender === "user" ? "user" : "ai",
     }));
   } catch (error) {
     console.error("Failed to get messages:", error);
@@ -40,34 +40,35 @@ export const getCachedMessages = async (): Promise<Message[]> => {
   }
 };
 
-// save conversation in async-storage
-export const saveConversation = async (conversation: Conversation[]) => {
+// Save conversations (merge without duplication)
+export const saveConversation = async (newConversations: Conversation[]) => {
   try {
-    const savedCon = await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(conversation)
-    );
+    const existing = await getCachedConversation();
 
-    console.log(savedCon);
+    // Merge and prevent duplication by ID
+    const merged = [
+      ...newConversations,
+      ...existing.filter((e) => !newConversations.some((n) => n.id === e.id)),
+    ];
+
+    await AsyncStorage.setItem(CONVERSATION_KEY, JSON.stringify(merged));
+    console.log("Conversations saved.");
   } catch (error) {
-    console.error("Failed to save conversation:", error);
+    console.error("Failed to save conversations:", error);
   }
 };
 
-// get conversation in async-stroage
-export const getCachedConversation = async () => {
+// Get cached conversations
+export const getCachedConversation = async (): Promise<Conversation[]> => {
   try {
-    const json = await AsyncStorage.getItem(STORAGE_KEY);
-
+    const json = await AsyncStorage.getItem(CONVERSATION_KEY);
     if (!json) return [];
 
     const parsed = JSON.parse(json) as Conversation[];
-
-    console.log("get cached conversation is calling:", parsed);
-
-    return parsed as Conversation[];
+    console.log("conversation was fetched form asnyc-storage", parsed);
+    return parsed;
   } catch (error) {
-    console.error("Failed to get conversation", error);
+    console.error("Failed to get conversations:", error);
     return [];
   }
 };

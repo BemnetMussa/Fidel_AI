@@ -59,30 +59,30 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   // getting conversation from async-storage and fetch conversation from db
 
-  useEffect(() => {
-    const loadConversations = async () => {
-      const cached = await getCachedConversation();
-      if (cached.length) setConversations(cached);
+  const loadConversations = async () => {
+    const cached = await getCachedConversation();
+    if (cached.length) setConversations(cached);
 
-      try {
-        setLoading(true);
-        const response = await axios.get(`${baseURL}/api/conversation`, {
-          withCredentials: true,
-        });
+    try {
+      setLoading(true);
+      const response = await axios.get(`${baseURL}/api/conversation`, {
+        withCredentials: true,
+      });
 
-        const { converstation } = response.data;
+      const { converstation } = response.data;
 
-        if (Array.isArray(converstation)) {
-          setConversations(converstation);
-          await saveConversation(converstation);
-        }
-      } catch (error) {
-        console.error("Error loading conversations:", error);
-      } finally {
-        setLoading(false);
+      if (Array.isArray(converstation)) {
+        setConversations(converstation);
+        await saveConversation(converstation);
       }
-    };
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadConversations();
   }, []);
 
@@ -108,7 +108,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       // console.log("New conversation response:", response.data);
       //  console.log("Conversations:", conversations);
 
-      await saveConversation([newConversation]);
+      // avoid over writing prev saved
+      await saveConversation([newConversation, ...conversations]);
 
       const chatId = newConversation.id.toString();
 
