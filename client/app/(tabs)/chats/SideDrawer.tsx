@@ -159,8 +159,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     );
   };
 
-  const handleUpgradeToPlus = () => {
-    console.log("Upgrading to Plus");
+  const handleGiveFeedback = () => {
+    console.log("Handle User Feedback");
     onClose();
   };
 
@@ -339,22 +339,23 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleUpgradeToPlus}
-                className="flex-row items-center justify-between px-4 py-3"
+                onPress={handleGiveFeedback}
+                className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
-                  <Icon name="user" size={18} color={iconColor} />
-                  <Text style={{ color: textColor }} className="ml-3 text-base">
-                    Upgrade to Plus
+                  <Icon name="chatbox-ellipses" size={18} color={iconColor} />
+                  <Text style={{ color: textColor }} className="ml-4 text-base">
+                    አስተያየት ይስጡ
                   </Text>
                 </View>
-                <View
-                  style={{ backgroundColor: "#FCD34D" }}
-                  className="px-2 py-1 rounded"
-                >
-                  <Text className="text-xs font-semibold text-black">NEW</Text>
-                </View>
+
+             
+                 <Text className="text-yellow-400 text-base">⭐</Text>
+
+                 
+                
               </TouchableOpacity>
+
 
               <TouchableOpacity
                 onPress={toggleTheme}
