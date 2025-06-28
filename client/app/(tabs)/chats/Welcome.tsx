@@ -7,6 +7,9 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
 import ChatLayout from "./ChatLayout";
 import CardSlider from "./CardSlider";
+import { saveConversation, saveMessages } from "@/lib/storage";
+import { Conversation } from "./SideDrawer";
+import { Message } from "./ChatMessages";
 
 export default function Welcome() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,8 +26,27 @@ export default function Welcome() {
         { content: userMessage },
         { withCredentials: true }
       );
+
+      console.log("it is  the whole response", response.data);
+
+      console.log("//////////////");
+
+      console.log("it is message only", response.data.message);
+
+      console.log("//////////////");
+
+      console.log("it is conversation only", response.data.conversation);
+
       const newChatId: string = response.data.conversationId;
       if (!newChatId) throw new Error("No new chat ID returned from server");
+
+      const conversation: Conversation = response.data.conversation;
+      const messages: Message[] = response.data.message
+        ? [response.data.message]
+        : response.data.messages;
+
+      await saveMessages(newChatId, messages);
+      await saveConversation([conversation]);
 
       router.push({
         pathname: "/chats/[chatId]",
@@ -32,6 +54,7 @@ export default function Welcome() {
       });
     } catch (error) {
       Alert.alert("Error", "Failed to send message. Try again.");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }

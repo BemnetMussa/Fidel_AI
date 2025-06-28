@@ -2,41 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/db";
 import { AuthenticatedRequest } from "../types/express";
 
-console.log("Chats controller initialized");
-//create chat
-export const createConverstation = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const userId = (req as AuthenticatedRequest).user.id;
-    const { title } = req.body;
-
-    console.log("Creating chat for user:", userId, "with title:", title);
-    const chat = await prisma.conversation.create({
-      data: {
-        userId,
-        title: title || "New Chat",
-      },
-    });
-    if (!chat) {
-      const error = new Error("Chat not found");
-      res.status(404);
-      next(error);
-      return;
-    }
-    res.status(201).json({
-      message: "chat created successfuly",
-      chat,
-    });
-  } catch (error) {
-    console.log(error);
-    next(error);
-    return;
-  }
-};
-
 // get all Converstation
 export const getConverstations = async (
   req: Request,

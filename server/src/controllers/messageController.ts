@@ -19,6 +19,8 @@ export const createMessage = async (
       ? parseInt(req.params.conversationId)
       : null;
 
+    console.log(conversationId);
+
     // If no conversationId or invalid, create a new conversation
     let conversation = conversationId
       ? await prisma.conversation.findUnique({ where: { id: conversationId } })
@@ -80,7 +82,7 @@ export const createMessage = async (
     });
 
     // Update conversation timestamp
-    await prisma.conversation.update({
+    conversation = await prisma.conversation.update({
       where: { id: conversationId },
       data: { updatedAt: new Date() },
     });
@@ -88,8 +90,11 @@ export const createMessage = async (
     // 4. Return conversation ID and both messages
     res.status(201).json({
       conversationId,
-      userMessage,
-      aiMessage,
+      conversation,
+      message: {
+        userMessage,
+        aiMessage,
+      },
     });
   } catch (error) {
     console.error("Chat handling error:", error);
@@ -107,21 +112,28 @@ export const getMessages = async (
     let conversationId = parseInt(req.params.conversationId);
 
     const userId = (req as AuthenticatedRequest).user.id;
+    console.log(userId);
 
     const messages = await prisma.message.findMany({
       where: {
         conversationId,
-        // sender: userId,
       },
       orderBy: {
         createdAt: "asc", // Optional: chronological order
       },
     });
 
-    console.log(messages);
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: conversationId,
+      },
+    });
 
-    if (!messages) {
-      const error = new Error("messages are not found");
+    console.log("getting messages", messages);
+    console.log("getting conversation", conversation);
+
+    if (!messages || !conversation) {
+      const error = new Error("messages or conversation is/are not found");
       res.status(400);
       next(error);
       return;
@@ -129,6 +141,7 @@ export const getMessages = async (
 
     res.status(200).json({
       messages,
+      conversation,
     });
   } catch (error) {
     next(error);

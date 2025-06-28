@@ -1,4 +1,5 @@
 import { authClient } from "@/lib/auth-client";
+import { clearAllConversations } from "@/lib/storage";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Alert } from "react-native";

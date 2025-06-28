@@ -19,22 +19,21 @@ export default function ChatView() {
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
     const loadCachedAndFetchMessage = async () => {
-      const cached = await getCachedMessages();
-      if (cached.length) {
-        setMessages(cached);
-      } else {
-        // Optionally, initial AI greeting if no cached messages
-        setMessages([
-          {
-            sender: "ai",
-            text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-      }
-
       if (typeof chatId === "string") {
         setConversationId(chatId);
+        const cached = await getCachedMessages(chatId);
+        if (cached.length) {
+          setMessages(cached);
+        } else {
+          // Optionally, initial AI greeting if no cached messages
+          setMessages([
+            {
+              sender: "ai",
+              text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+        }
         await loadingMessage(chatId);
       }
     };
@@ -65,9 +64,10 @@ export default function ChatView() {
       }));
 
       setMessages(formattedMessages);
-      await saveMessages(formattedMessages);
+      await saveMessages(convId, formattedMessages);
     } catch (error) {
       console.error("Error loading conversations:", error);
+      console.log(error);
       Alert.alert("Error", "Failed to load messages.");
     } finally {
       setLoading(false);
@@ -80,7 +80,9 @@ export default function ChatView() {
       console.log("Sending message to Gemini:", userMessage);
 
       const response = await axios.post(
-        conversationId && `${baseURL}/api/message/${conversationId}`,
+        conversationId
+          ? `${baseURL}/api/message/${conversationId}`
+          : `${baseURL}/api/message`,
         { content: userMessage },
         { withCredentials: true }
       );
@@ -91,13 +93,12 @@ export default function ChatView() {
         conversationId: returnedId,
       } = response.data;
 
+      const usedConversationId = conversationId || returnedId;
       if (!conversationId && returnedId) {
-        console.log("New conversationId:", returnedId);
         setConversationId(returnedId.toString());
       }
 
       const newMessages: Message[] = [
-        ...messages,
         {
           sender: "user",
           text: savedUserMessage.content,
@@ -110,8 +111,8 @@ export default function ChatView() {
         },
       ];
 
-      setMessages(newMessages);
-      await saveMessages(newMessages);
+      setMessages((prev) => [...prev, ...newMessages]);
+      await saveMessages(usedConversationId, newMessages);
     } catch (error) {
       console.error("Error calling backend:", error);
       Alert.alert("Error", "Failed to send message. Try again.");
