@@ -400,7 +400,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         onRequestClose={() => setRenameModalVisible(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/50 px-4">
-          <View className="bg-white p-4 rounded-lg w-full max-w-md">
+          <View className="bg-primary p-4 rounded-lg w-full max-w-md">
             <Text className="text-lg font-semibold mb-2">
               Rename Conversation
             </Text>

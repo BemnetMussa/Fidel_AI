@@ -62,7 +62,7 @@ export default function SplashScreen() {
   }, [router]);
 
   return (
-    <View className="flex-1 bg-white items-center justify-center px-6">
+    <View className="flex-1 bg-primary items-center justify-center px-6">
       <View className="flex-1 items-center justify-center">
         <Image
           source={require("@/assets/images/logo.png")}

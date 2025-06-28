@@ -9,7 +9,7 @@ export default function WelcomeScreen() {
   const router = useRouter()
 
   return (
-    <View className="flex-1 bg-white px-6">
+    <View className="flex-1 bg-primary px-6">
       <View className="flex-1 items-center justify-center">
         <Image
           source={require("@/assets/images/logo.png")}
