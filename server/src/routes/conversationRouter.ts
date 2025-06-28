@@ -4,6 +4,7 @@ import {
   getConverstationsWithMessage,
   deleteConverstation,
   updateConversation,
+  deleteConversationById,
 } from "../controllers/conversationController";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -14,6 +15,7 @@ router
   .delete("/", requireAuth, deleteConverstation);
 router
   .get("/:conversationId", requireAuth, getConverstationsWithMessage)
-  .put("/conversationId", requireAuth, updateConversation);
+  .put("/:conversationId", requireAuth, updateConversation)
+  .delete("/:conversationId", requireAuth, deleteConversationById);
 
 export default router;

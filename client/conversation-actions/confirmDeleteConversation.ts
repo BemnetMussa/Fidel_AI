@@ -1,5 +1,6 @@
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
 import { baseURL } from "@/lib/auth-client";
+import { deleteConversationById, getCachedConversation } from "@/lib/storage";
 import axios from "axios";
 import { Alert } from "react-native";
 
@@ -22,15 +23,20 @@ export const confirmDeleteConversation = async ({
         style: "destructive",
         onPress: async () => {
           try {
+            console.log("delete conversation", conversation);
+            console.log("delete conversation id", conversation.id);
             await axios.delete(
-              `${baseURL}/api/conversations/${conversation.id}`,
+              `${baseURL}/api/conversation/${conversation.id}`,
               {
                 withCredentials: true,
               }
             );
+
+            await deleteConversationById(conversation.id);
             setConversations((prev) =>
               prev.filter((c) => c.id !== conversation.id)
             );
+            await getCachedConversation();
           } catch (error) {
             console.error("Error deleting conversation:", error);
             Alert.alert("Error", "Failed to delete conversation.");
