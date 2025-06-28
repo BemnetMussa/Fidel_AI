@@ -72,7 +72,7 @@ export default function ChatMessages({
           }`}
         >
           <View
-            className={`max-w-[95%] px-2 py-3 ${
+            className={`max-w-full px-2 py-3 ${
               msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
             }`}
             style={[
