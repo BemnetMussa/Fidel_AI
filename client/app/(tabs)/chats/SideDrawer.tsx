@@ -7,7 +7,7 @@ import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
 import { renameConversationTitle } from "@/conversation-actions/renameConversation";
 import axios from "axios";
 import { router } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Animated,
   Dimensions,
@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import { getCachedConversation, saveConversation } from "@/lib/storage";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
@@ -58,7 +59,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const iconColor = Colors[theme].icon;
 
   // getting conversation from async-storage and fetch conversation from db
-
   const loadConversations = async () => {
     const cached = await getCachedConversation();
     if (cached.length) setConversations(cached);
@@ -82,9 +82,19 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
+  // Refresh conversations when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadConversations();
+    }, [])
+  );
+
+  // Also load when drawer becomes visible
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (isVisible) {
+      loadConversations();
+    }
+  }, [isVisible]);
 
   const handleNewConversation = async () => {
     console.log("Creating new conversation");
@@ -107,12 +117,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       if (!newConversation?.id) {
         throw new Error("Conversation ID missing from server response");
       }
-      setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
+
+      const updatedConversations = [newConversation, ...conversations];
+      setConversations(updatedConversations); // Prepend new conversation
       // console.log("New conversation response:", response.data);
       //  console.log("Conversations:", conversations);
 
       // avoid over writing prev saved
-      await saveConversation([newConversation, ...conversations]);
+      await saveConversation(updatedConversations);
 
       const chatId = newConversation.id.toString();
 
@@ -152,8 +164,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         },
         {
           text: "Delete",
-          onPress: () =>
-            confirmDeleteConversation({ setConversations, conversation }),
+          onPress: async () => {
+            await confirmDeleteConversation({
+              setConversations,
+              conversation,
+            });
+            // Refresh conversations after deletion
+            loadConversations();
+          },
           style: "destructive",
         },
         { text: "Cancel", style: "cancel" },
@@ -177,13 +195,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     if (!selectedConversation || !newTitle.trim()) return;
     try {
       await renameConversationTitle(selectedConversation.id, newTitle.trim());
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === selectedConversation.id
-            ? { ...c, title: newTitle.trim() }
-            : c
-        )
+
+      const updatedConversations = conversations.map((c) =>
+        c.id === selectedConversation.id ? { ...c, title: newTitle.trim() } : c
       );
+
+      setConversations(updatedConversations);
+      await saveConversation(updatedConversations);
+
       setRenameModalVisible(false);
       setSelectedConversation(null);
       setNewTitle("");
@@ -195,6 +214,15 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   // logout
   const handleLogout = useHandleLogout();
+
+  const handleClearConversationsWithRefresh = async () => {
+    await handleClearConversations({
+      setConversations,
+      onClose,
+    });
+    // Refresh conversations after clearing
+    loadConversations();
+  };
 
   const renderConversationItem = (conversation: Conversation) => (
     <TouchableOpacity
@@ -330,9 +358,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               className="border-t pt-2"
             >
               <TouchableOpacity
-                onPress={() =>
-                  handleClearConversations({ setConversations, onClose })
-                }
+                onPress={handleClearConversationsWithRefresh}
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="trash-2" size={18} color={iconColor} />

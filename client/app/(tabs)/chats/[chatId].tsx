@@ -19,6 +19,9 @@ export default function ChatView() {
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
     const loadCachedAndFetchMessage = async () => {
+      // Clear messages immediately when chatId changes for smooth transition
+      setMessages([]);
+      
       const cached = await getCachedMessages();
       if (cached.length) {
         setMessages(cached);
@@ -147,6 +150,13 @@ export default function ChatView() {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
+
+  // Clear messages when component unmounts or chatId changes
+  useEffect(() => {
+    return () => {
+      setMessages([]);
+    };
+  }, []);
 
   return (
     <ChatLayout
