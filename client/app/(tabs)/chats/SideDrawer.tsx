@@ -116,14 +116,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           setRenameModalVisible(true);
         },
       },
-      {
-        text: "Delete",
-        onPress: () =>
-          confirmDeleteConversation({ setConversations, conversation }),
-        style: "destructive",
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    
         {
           text: "Delete",
           onPress: () =>
@@ -311,11 +304,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
-                  console.log("Upgrading to Plus");
-                  onClose();
-                }}
-                className="flex-row items-center justify-between px-4 py-3"
+       
                 onPress={ () => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
