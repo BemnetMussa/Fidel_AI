@@ -1,11 +1,11 @@
 import express from "express";
-import { requireAuth } from "../middlewares/requireAuth";
 import {
   createMessage,
   deleteMessage,
   getMessages,
   updateMessage,
 } from "../controllers/messageController";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router = express.Router();
 

@@ -86,7 +86,7 @@ export default function RegisterScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   const handleSocialLogin = (provider: string) => {
     console.log(`Register with ${provider}`);

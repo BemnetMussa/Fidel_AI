@@ -59,7 +59,7 @@ export default function ChatMessages({
   return (
     <ScrollView
       ref={scrollViewRef}
-      className="flex-1 py-4 px-2"
+      className="flex-1 py-4 px-3"
       contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -72,7 +72,7 @@ export default function ChatMessages({
           }`}
         >
           <View
-            className={`max-w-[95%] px-2 py-3 ${
+            className={`max-w-full px-2 py-3 ${
               msg.sender === "user" ? "rounded-l-2xl rounded-r-2xl" : ""
             }`}
             style={[

@@ -5,6 +5,7 @@ import axios from "axios";
 
 // Gemini credentials
 const GEMINI_API_URL = process.env.GEMINI_API_URL!;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 export const createMessage = async (
   req: Request,
@@ -18,6 +19,7 @@ export const createMessage = async (
     let conversationId = req.params.conversationId
       ? parseInt(req.params.conversationId)
       : null;
+
 
     console.log(conversationId);
 
@@ -37,6 +39,7 @@ export const createMessage = async (
         },
       });
       conversationId = conversation.id;
+      isNewConversation = true;
       console.log("New conversation created with ID:", conversationId);
     }
 
@@ -46,6 +49,7 @@ export const createMessage = async (
       next(error);
       return;
     }
+
     // 1. Save user message
     const userMessage = await prisma.message.create({
       data: {
@@ -59,15 +63,13 @@ export const createMessage = async (
 
     // 2. Call Gemini API
     const geminiResponse = await axios.post(
-      GEMINI_API_URL,
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
       {
         contents: [{ parts: [{ text: content }] }],
       },
       {
         headers: {
           "Content-Type": "application/json",
-          // You can add your Gemini API key here if needed
-          // "Authorization": `Bearer ${GEMINI_API_KEY}`,
         },
       }
     );
@@ -90,13 +92,15 @@ export const createMessage = async (
     console.log("ai message", aiMessage);
 
     // Update conversation timestamp
+
     conversation = await prisma.conversation.update({
+
       where: { id: conversationId },
       data: { updatedAt: new Date() },
     });
 
-    // 4. Return conversation ID and both messages
-    res.status(201).json({
+    // 4. Prepare response - include conversation object for frontend caching
+    const response: any = {
       conversationId,
       conversation,
       message: {
@@ -104,6 +108,7 @@ export const createMessage = async (
         aiMessage,
       },
     });
+
   } catch (error) {
     console.error("Chat handling error:", error);
     next(error);

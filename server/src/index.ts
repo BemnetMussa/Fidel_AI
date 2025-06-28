@@ -21,6 +21,7 @@ app.use(express.json());
 // Configure CORS middleware
 app.use(
   cors({
+
     origin: "exp://192.168.238.211:8081", // or your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
