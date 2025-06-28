@@ -59,7 +59,7 @@ export default function ChatMessages({
   return (
     <ScrollView
       ref={scrollViewRef}
-      className="flex-1 py-4 px-2"
+      className="flex-1 py-4 px-3"
       contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}

@@ -69,11 +69,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         withCredentials: true,
       });
 
-      const { converstation } = response.data;
+      const { conversation } = response.data;
 
-      if (Array.isArray(converstation)) {
-        setConversations(converstation);
-        await saveConversation(converstation);
+      if (Array.isArray(conversation)) {
+        setConversations(conversation);
+        await saveConversation(conversation);
       }
     } catch (error) {
       console.error("Error loading conversations:", error);

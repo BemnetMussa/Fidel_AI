@@ -22,15 +22,6 @@ export default function ChatView() {
       const cached = await getCachedMessages();
       if (cached.length) {
         setMessages(cached);
-      } else {
-        // Optionally, initial AI greeting if no cached messages
-        setMessages([
-          {
-            sender: "ai",
-            text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
-            timestamp: new Date().toISOString(),
-          },
-        ]);
       }
 
       if (typeof chatId === "string") {
@@ -64,11 +55,33 @@ export default function ChatView() {
         timestamp: msg.createdAt,
       }));
 
-      setMessages(formattedMessages);
-      await saveMessages(formattedMessages);
+      // Only set messages if there are actual messages from the backend
+      // Otherwise, show the initial greeting for new conversations
+      if (formattedMessages.length > 0) {
+        setMessages(formattedMessages);
+        await saveMessages(formattedMessages);
+      } else {
+        const initialMessage: Message[] = [
+          {
+            sender: "ai",
+            text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+            timestamp: new Date().toISOString(),
+          },
+        ];
+        setMessages(initialMessage);
+      }
     } catch (error) {
       console.error("Error loading conversations:", error);
       Alert.alert("Error", "Failed to load messages.");
+
+      const initialMessage: Message[] = [
+        {
+          sender: "ai",
+          text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+          timestamp: new Date().toISOString(),
+        },
+      ];
+      setMessages(initialMessage);
     } finally {
       setLoading(false);
     }
