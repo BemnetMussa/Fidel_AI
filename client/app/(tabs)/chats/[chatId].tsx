@@ -6,6 +6,7 @@ import { baseURL } from "@/lib/auth-client";
 import ChatLayout from "./ChatLayout";
 import ChatMessages, { Message } from "./ChatMessages";
 import { getCachedMessages, saveMessages } from "@/lib/storage";
+import { getCachedConversation, saveConversation } from "@/lib/storage";
 
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
@@ -19,6 +20,7 @@ export default function ChatView() {
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
     const loadCachedAndFetchMessage = async () => {
+
       if (typeof chatId === "string") {
         setConversationId(chatId);
         const cached = await getCachedMessages(chatId);
@@ -63,14 +65,42 @@ export default function ChatView() {
         timestamp: msg.createdAt,
       }));
 
+
       setMessages(formattedMessages);
       await saveMessages(convId, formattedMessages);
+
     } catch (error) {
       console.error("Error loading conversations:", error);
       console.log(error);
       Alert.alert("Error", "Failed to load messages.");
+
+      const initialMessage: Message[] = [
+        {
+          sender: "ai",
+          text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+          timestamp: new Date().toISOString(),
+        },
+      ];
+      setMessages(initialMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to update cached conversations
+  const updateCachedConversations = async (newConversation: any) => {
+    try {
+      const cachedConversations = await getCachedConversation();
+      const conversationExists = cachedConversations.some(
+        (conv) => conv.id === newConversation.id
+      );
+
+      if (!conversationExists) {
+        const updatedConversations = [newConversation, ...cachedConversations];
+        await saveConversation(updatedConversations);
+      }
+    } catch (error) {
+      console.error("Error updating cached conversations:", error);
     }
   };
 
@@ -79,12 +109,14 @@ export default function ChatView() {
       setIsLoading(true);
       console.log("Sending message to Gemini:", userMessage);
 
+
       console.log("this is conversation is", conversationId);
 
       const response = await axios.post(
         conversationId
           ? `${baseURL}/api/message/${conversationId}`
           : `${baseURL}/api/message`,
+
         { content: userMessage },
         { withCredentials: true }
       );
@@ -92,11 +124,19 @@ export default function ChatView() {
       const {
         message: { aiMessage, userMessage: savedUserMessage },
         conversationId: returnedId,
+        conversation, // The backend should return the conversation object
       } = response.data;
 
+
       const usedConversationId = conversationId || returnedId;
+
       if (!conversationId && returnedId) {
         setConversationId(returnedId.toString());
+
+        // Update cached conversations with the new conversation
+        if (conversation) {
+          await updateCachedConversations(conversation);
+        }
       }
 
       const newMessages: Message[] = [
@@ -139,6 +179,13 @@ export default function ChatView() {
     }
   }, [messages]);
 
+  // Clear messages when component unmounts or chatId changes
+  useEffect(() => {
+    return () => {
+      setMessages([]);
+    };
+  }, []);
+
   return (
     <ChatLayout
       input={input}
@@ -154,3 +201,4 @@ export default function ChatView() {
     </ChatLayout>
   );
 }
+ 

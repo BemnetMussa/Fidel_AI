@@ -27,15 +27,15 @@ const CardSlider = () => {
         contentContainerStyle={{ paddingHorizontal: 16 }}
         renderItem={({ item }) => (
           <TouchableOpacity
-            className={`${theme === "dark" ? "bg-[#2e2e2e]" : "bg-[#efefef]"} p-4 rounded-xl mr-3 w-[220px] h-[80px] justify-center shadow-sm shadow-black/10`}
+            className={`${theme === "dark" ? "bg-[#c2c2c2]" : "bg-[#efefef]"} p-4 rounded-xl mr-3 w-[200px] h-[60px] justify-center shadow-sm shadow-black/10`}
           >
             <Text
-              className={`text-xl font-extrabold ${theme === "dark" ? "text-white" : "text-black"} mb-1`}
+              className={`text-lg font-bold ${theme === "dark" ? "text-white" : "text-black"} mb-1`}
             >
               {item.title}
             </Text>
             <Text
-              className={`text-s ${theme === "dark" ? "text-white" : "text-black"}`}
+              className={`text-sm ${theme === "dark" ? "text-white" : "text-black"}`}
             >
               {item.subtitle}
             </Text>
