@@ -80,7 +80,7 @@ export default function LoginScreen() {
     } catch (error) {
       console.error("Login error:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 

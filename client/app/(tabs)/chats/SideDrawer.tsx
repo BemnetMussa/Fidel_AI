@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
-import { baseURL } from "@/lib/auth-client";
+import { authClient, baseURL } from "@/lib/auth-client";
 import { handleClearConversations } from "@/conversation-actions/clearConversation";
 import { confirmDeleteConversation } from "@/conversation-actions/confirmDeleteConversation";
 import { useHandleLogout } from "@/conversation-actions/HandleSignOut";
@@ -91,6 +91,9 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     setLoading(true);
 
     try {
+      const { data: session } = await authClient.getSession();
+      console.log(session);
+
       const response = await axios.post(
         `${baseURL}/api/conversation`,
         { title: "New Chat" },

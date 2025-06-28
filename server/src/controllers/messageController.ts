@@ -54,15 +54,13 @@ export const createMessage = async (
 
     // 2. Call Gemini API
     const geminiResponse = await axios.post(
-      GEMINI_API_URL,
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
       {
         contents: [{ parts: [{ text: content }] }],
       },
       {
         headers: {
           "Content-Type": "application/json",
-          // You can add your Gemini API key here if needed
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
         },
       }
     );
