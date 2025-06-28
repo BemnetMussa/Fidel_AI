@@ -26,6 +26,8 @@ export const createMessage = async (
       ? await prisma.conversation.findUnique({ where: { id: conversationId } })
       : null;
 
+    console.log("fetching conversation", conversation);
+
     // If conversation doesn't exist or doesn't belong to user, create a new one
     if (!conversation || conversation.userId !== userId) {
       conversation = await prisma.conversation.create({
@@ -53,6 +55,8 @@ export const createMessage = async (
       },
     });
 
+    console.log("this is users message", userMessage);
+
     // 2. Call Gemini API
     const geminiResponse = await axios.post(
       GEMINI_API_URL,
@@ -72,6 +76,8 @@ export const createMessage = async (
       geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "I'm not sure how to respond to that.";
 
+    console.log("this is the ai response", aiText);
+
     // 3. Save AI message
     const aiMessage = await prisma.message.create({
       data: {
@@ -80,6 +86,8 @@ export const createMessage = async (
         conversationId: conversationId!,
       },
     });
+
+    console.log("ai message", aiMessage);
 
     // Update conversation timestamp
     conversation = await prisma.conversation.update({

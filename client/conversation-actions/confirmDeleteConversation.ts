@@ -22,11 +22,9 @@ export const confirmDeleteConversation = async ({
         style: "destructive",
         onPress: async () => {
           try {
-            // const token = await AsyncStorage.getItem("jwtToken");
             await axios.delete(
               `${baseURL}/api/conversations/${conversation.id}`,
               {
-                // headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
               }
             );

@@ -79,6 +79,8 @@ export default function ChatView() {
       setIsLoading(true);
       console.log("Sending message to Gemini:", userMessage);
 
+      console.log("this is conversation is", conversationId);
+
       const response = await axios.post(
         conversationId
           ? `${baseURL}/api/message/${conversationId}`
@@ -88,8 +90,7 @@ export default function ChatView() {
       );
 
       const {
-        aiMessage,
-        userMessage: savedUserMessage,
+        message: { aiMessage, userMessage: savedUserMessage },
         conversationId: returnedId,
       } = response.data;
 
@@ -110,6 +111,8 @@ export default function ChatView() {
           timestamp: aiMessage.createdAt,
         },
       ];
+
+      console.log("new message retirive", newMessages);
 
       setMessages((prev) => [...prev, ...newMessages]);
       await saveMessages(usedConversationId, newMessages);

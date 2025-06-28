@@ -27,16 +27,6 @@ export default function Welcome() {
         { withCredentials: true }
       );
 
-      console.log("it is  the whole response", response.data);
-
-      console.log("//////////////");
-
-      console.log("it is message only", response.data.message);
-
-      console.log("//////////////");
-
-      console.log("it is conversation only", response.data.conversation);
-
       const newChatId: string = response.data.conversationId;
       if (!newChatId) throw new Error("No new chat ID returned from server");
 

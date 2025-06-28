@@ -24,7 +24,6 @@ interface SessionResponse {
 
 export default function SplashScreen() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -53,8 +52,6 @@ export default function SplashScreen() {
       } catch (err) {
         console.error("Error getting session:", err);
         router.replace("/welcome");
-      } finally {
-        setIsLoading(false);
       }
     };
 
