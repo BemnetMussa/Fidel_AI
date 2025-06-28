@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import { getCachedConversation, saveConversation } from "@/lib/storage";
+import FeedbackModal from "./FeedbackModal";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
@@ -56,6 +57,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+
 
   // getting conversation from async-storage and fetch conversation from db
 
@@ -159,10 +162,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     );
   };
 
-  const handleGiveFeedback = () => {
-    console.log("Handle User Feedback");
-    onClose();
-  };
+
+
 
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
@@ -220,6 +221,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       </View>
     </TouchableOpacity>
   );
+
 
   return (
     <>
@@ -339,7 +341,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleGiveFeedback}
+                onPress={ () => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
@@ -348,13 +350,19 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                     አስተያየት ይስጡ
                   </Text>
                 </View>
-
              
                  <Text className="text-yellow-400 text-base">⭐</Text>
 
                  
                 
               </TouchableOpacity>
+              {feedbackModalVisible && (
+                <FeedbackModal
+                  visible={feedbackModalVisible}
+                  onClose={() => setFeedbackModalVisible(false)}
+                  userEmail={""}
+                />
+              )}
 
 
               <TouchableOpacity
