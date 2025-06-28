@@ -19,7 +19,7 @@ export default function WelcomeScreen() {
         />
 
     
-        <Text className="text-3xl font-bold text-gray-900 text-center mb-2">እንኳን ወደ ፊደል AI በደና መጡ! </Text>
+        <Text className="text-3xl font-bold text-gray-900 text-center mb-2">እንኳን ወደ  ፊደል <Text className="text-secondary">AI</Text> በደና መጡ! </Text>
 
       </View>
 

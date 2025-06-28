@@ -76,13 +76,13 @@ export default function SplashScreen() {
           accessibilityLabel="Fidel Logo"
         />
         <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-          እንኳን ወደ ፊደል AI በደና መጡ!
+          እንኳን ወደ  ፊደል <Text className="text-secondary">AI</Text> በደና መጡ!
         </Text>
         {/* remove loading ui */}
       </View>
 
       <View className="pb-8">
-        <Text className="text-lg font-bold text-gray-900 mb-1">pAI</Text>
+        <Text className="text-lg font-bold text-gray-900 mb-1"> ፊደል <Text className="text-secondary">AI</Text></Text>
         <Text className="text-sm text-gray-500">Version 1.0</Text>
       </View>
     </View>

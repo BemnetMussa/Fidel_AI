@@ -99,9 +99,12 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Create your Account" showBackButton />
+   
+        <AuthHeader title="" showBackButton />
+        <Text className="m-5 text-4xl font-bold">Create your Account</Text>
 
-        <View className="px-6 pb-8">
+
+        <View className="px-6 pb-8 mt-5">
           <Controller
             control={control}
             name="name"

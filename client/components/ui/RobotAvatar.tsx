@@ -36,7 +36,7 @@ export const RobotAvatar: React.FC<RobotAvatarProps> = ({ size = "medium", class
 
         {/* Speech bubble */}
         <View className="absolute -top-2 -right-1 bg-primary rounded-full w-6 h-6 items-center justify-center border border-gray-200">
-          <Text className="text-xs font-bold text-gray-800">pAI</Text>
+          <Text className="text-xs font-bold text-gray-800"> ፊደል <Text className="text-secondary">AI</Text></Text>
         </View>
       </View>
     </View>

@@ -94,9 +94,11 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <AuthHeader title="Login Your Account" showBackButton />
+        <AuthHeader title="" showBackButton />
+        <Text className="m-5 text-4xl font-bold">Login Your Account</Text>
 
-        <View className="px-6 pb-8">
+
+        <View className="px-6 pb-8 mt-5">
           <Controller
             control={control}
             name="email"
