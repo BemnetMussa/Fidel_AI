@@ -25,7 +25,7 @@ import { getCachedConversation, saveConversation } from "@/lib/storage";
 import FeedbackModal from "./FeedbackModal";
 
 const { width: screenWidth } = Dimensions.get("window");
-const DRAWER_WIDTH = screenWidth * 0.75; // 75% of screen width
+const DRAWER_WIDTH = screenWidth * 0.75;
 
 interface SideDrawerProps {
   isVisible: boolean;
@@ -34,7 +34,7 @@ interface SideDrawerProps {
 }
 
 export interface Conversation {
-  id: number;
+  id: string;
   title: string;
   userId: string;
   createdAt: string;
@@ -60,8 +60,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
 
 
-  // getting conversation from async-storage and fetch conversation from db
-
   const loadConversations = async () => {
     const cached = await getCachedConversation();
     if (cached.length) setConversations(cached);
@@ -75,8 +73,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       const { converstation } = response.data;
 
       if (Array.isArray(converstation)) {
-        setConversations(converstation);
-        await saveConversation(converstation);
+        const merged = [
+          ...converstation,
+          ...cached.filter(
+            (c) => !converstation.find((f: Conversation) => f.id === c.id)
+          ),
+        ];
+        setConversations(merged);
+        await saveConversation(merged);
       }
     } catch (error) {
       console.error("Error loading conversations:", error);
@@ -90,46 +94,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   }, []);
 
   const handleNewConversation = async () => {
-    console.log("Creating new conversation");
-    setLoading(true);
-
-    try {
-      const response = await axios.post(
-        `${baseURL}/api/conversation`,
-        { title: "New Chat" },
-        {
-          withCredentials: true,
-        }
-      );
-
-      const { chat: newConversation } = response.data; // Single conversation object
-      //  console.log(newConversation);
-      if (!newConversation?.id) {
-        throw new Error("Conversation ID missing from server response");
-      }
-      setConversations((prev) => [newConversation, ...prev]); // Prepend new conversation
-      // console.log("New conversation response:", response.data);
-      //  console.log("Conversations:", conversations);
-
-      // avoid over writing prev saved
-      await saveConversation([newConversation, ...conversations]);
-
-      const chatId = newConversation.id.toString();
-
-      router.push({
-        pathname: "/chats/[chatId]",
-        params: { chatId },
-      });
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-    } finally {
-      setLoading(false);
-      onClose();
-    }
+    router.replace("/chats");
   };
 
   const handleConversationPress = (conversation: Conversation) => {
-    console.log(`Opening conversation: ${conversation.title}`);
+    if (!conversation.id) return Alert.alert("Invalid conversation");
     router.push({
       pathname: "/chats/[chatId]",
       params: { chatId: conversation.id.toString() },
@@ -138,18 +107,23 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   };
 
   const handleConversationOptions = (conversation: Conversation) => {
-    Alert.alert(
-      "Conversation Options",
-      `Manage \"${conversation.title}\"`,
-      [
-        {
-          text: "Rename",
-          onPress: () => {
-            setSelectedConversation(conversation);
-            setNewTitle(conversation.title);
-            setRenameModalVisible(true);
-          },
+    Alert.alert("Conversation Options", `Manage \"${conversation.title}\"`, [
+      {
+        text: "Rename",
+        onPress: () => {
+          setSelectedConversation(conversation);
+          setNewTitle(conversation.title);
+          setRenameModalVisible(true);
         },
+      },
+      {
+        text: "Delete",
+        onPress: () =>
+          confirmDeleteConversation({ setConversations, conversation }),
+        style: "destructive",
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
         {
           text: "Delete",
           onPress: () =>
@@ -168,9 +142,9 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
     onClose();
+
   };
 
-  // rename
   const handleRename = async () => {
     if (!selectedConversation || !newTitle.trim()) return;
     try {
@@ -191,7 +165,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
-  // logout
   const handleLogout = useHandleLogout();
 
   const renderConversationItem = (conversation: Conversation) => (
@@ -253,7 +226,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           left: 0,
           bottom: 0,
           width: DRAWER_WIDTH,
-          backgroundColor: backgroundColor,
+          backgroundColor,
           transform: [
             {
               translateX: slideAnim.interpolate({
@@ -264,16 +237,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           ],
           zIndex: 50,
           shadowColor: "#000",
-          shadowOffset: {
-            width: 2,
-            height: 0,
-          },
+          shadowOffset: { width: 2, height: 0 },
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
           elevation: 5,
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: backgroundColor }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor }}>
           <ScrollView
             className="flex-1"
             showsVerticalScrollIndicator={false}
@@ -341,6 +311,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
+                onPress={() => {
+                  console.log("Upgrading to Plus");
+                  onClose();
+                }}
+                className="flex-row items-center justify-between px-4 py-3"
                 onPress={ () => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
@@ -380,7 +355,10 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleUpdatesAndFAQ}
+                onPress={() => {
+                  console.log("Opening Updates & FAQ");
+                  onClose();
+                }}
                 className="flex-row items-center px-4 py-3"
               >
                 <Icon name="help-circle" size={18} color={iconColor} />
@@ -401,7 +379,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         </SafeAreaView>
       </Animated.View>
 
-      {/* Rename Modal since Alert.prompt does support cross plateform */}
+      {/* Rename Modal */}
       <Modal
         visible={renameModalVisible}
         animationType="slide"

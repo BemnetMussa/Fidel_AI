@@ -20,7 +20,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { authClient } from "@/lib/auth-client";
 import { BadgeAlertIcon } from "lucide-react-native";
-import Toast from "react-native-toast-message";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email format" }),

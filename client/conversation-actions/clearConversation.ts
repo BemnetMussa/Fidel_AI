@@ -1,5 +1,6 @@
 import { Conversation } from "@/app/(tabs)/chats/SideDrawer";
 import { baseURL } from "@/lib/auth-client";
+import { clearAllConversations } from "@/lib/storage";
 import axios from "axios";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -26,6 +27,8 @@ export const handleClearConversations = async ({
             const response = await axios.delete(`${baseURL}/api/conversation`, {
               withCredentials: true,
             });
+
+            await clearAllConversations();
 
             if (!response || response.status !== 200) {
               console.log("Error deleting conversations");
