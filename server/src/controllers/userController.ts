@@ -35,3 +35,27 @@ export const fetchUser = async (
     return;
   }
 };
+
+
+export const submitFeedback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { feedback, email } = req.body;
+
+    if (!feedback || !email) {
+      res.status(400).json({ message: "Feedback and email are required." });
+      return
+    }
+
+    console.log("New Feedback");
+    console.log("Email:", email);
+    console.log("Feedback:", feedback);
+
+    res.status(200).json({ message: "Feedback submitted successfully." });
+  } catch (error) {
+    next(error);
+  }
+};

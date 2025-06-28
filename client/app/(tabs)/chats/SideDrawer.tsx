@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import { getCachedConversation, saveConversation } from "@/lib/storage";
+import FeedbackModal from "./FeedbackModal";
 
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75;
@@ -56,6 +57,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+
 
   const loadConversations = async () => {
     const cached = await getCachedConversation();
@@ -121,6 +124,25 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       },
       { text: "Cancel", style: "cancel" },
     ]);
+        {
+          text: "Delete",
+          onPress: () =>
+            confirmDeleteConversation({ setConversations, conversation }),
+          style: "destructive",
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+
+
+
+  const handleUpdatesAndFAQ = () => {
+    console.log("Opening Updates & FAQ");
+    onClose();
+
   };
 
   const handleRename = async () => {
@@ -172,6 +194,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       </View>
     </TouchableOpacity>
   );
+
 
   return (
     <>
@@ -293,20 +316,29 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                   onClose();
                 }}
                 className="flex-row items-center justify-between px-4 py-3"
+                onPress={ () => setFeedbackModalVisible(true)}
+                className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
-                  <Icon name="user" size={18} color={iconColor} />
-                  <Text style={{ color: textColor }} className="ml-3 text-base">
-                    Upgrade to Plus
+                  <Icon name="chatbox-ellipses" size={18} color={iconColor} />
+                  <Text style={{ color: textColor }} className="ml-4 text-base">
+                    አስተያየት ይስጡ
                   </Text>
                 </View>
-                <View
-                  style={{ backgroundColor: "#FCD34D" }}
-                  className="px-2 py-1 rounded"
-                >
-                  <Text className="text-xs font-semibold text-black">NEW</Text>
-                </View>
+             
+                 <Text className="text-yellow-400 text-base">⭐</Text>
+
+                 
+                
               </TouchableOpacity>
+              {feedbackModalVisible && (
+                <FeedbackModal
+                  visible={feedbackModalVisible}
+                  onClose={() => setFeedbackModalVisible(false)}
+                  userEmail={""}
+                />
+              )}
+
 
               <TouchableOpacity
                 onPress={toggleTheme}
@@ -355,7 +387,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         onRequestClose={() => setRenameModalVisible(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/50 px-4">
-          <View className="bg-white p-4 rounded-lg w-full max-w-md">
+          <View className="bg-primary p-4 rounded-lg w-full max-w-md">
             <Text className="text-lg font-semibold mb-2">
               Rename Conversation
             </Text>

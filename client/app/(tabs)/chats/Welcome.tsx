@@ -6,10 +6,14 @@ import { router } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Colors } from "@/constants/Colors";
 import ChatLayout from "./ChatLayout";
+
 import CardSlider from "./CardSlider";
 import { saveConversation, saveMessages } from "@/lib/storage";
 import { Conversation } from "./SideDrawer";
 import { Message } from "./ChatMessages";
+
+// import CardSlider from "./CardSlider";
+
 
 export default function Welcome() {
   const [isLoading, setIsLoading] = useState(false);
@@ -69,9 +73,9 @@ export default function Welcome() {
         {/* Centered Welcome Message */}
         <View className="flex-1 justify-center items-center">
           <Text
-            className={`text-5xl ${theme === "dark" ? "text-white" : "text-black"} font-extrabold text-center mb-4`}
+            className={`text-4xl ${theme === "dark" ? "text-white" : "text-black"} font-extrabold text-center mb-4`}
           >
-            Welcome to pAI{/* ወደ pAI እንኳን ደህና{"\n"}መጡ። */}
+            let's get started{/* ወደ  ፊደል <Text className="text-secondary">AI</Text> እንኳን ደህና{"\n"}መጡ። */}
           </Text>
         </View>
 
@@ -90,7 +94,7 @@ export default function Welcome() {
         </View> */}
       </View>
       {/* CardSlider placed here below the bottom section */}
-      <CardSlider />
+      {/* <CardSlider /> */}
     </ChatLayout>
   );
 }

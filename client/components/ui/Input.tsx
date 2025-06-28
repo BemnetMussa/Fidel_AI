@@ -31,7 +31,7 @@ export const Input: React.FC<InputProps> = ({
     <View className={cn("mb-6", containerClassName)}>
       <View
         className={cn(
-          "flex-row items-center border-2 rounded-2xl px-4 bg-white min-h-[56px]",
+          "flex-row items-center border-2 rounded-2xl px-4 bg-primary min-h-[56px]",
           error ? "border-red-500" : isFocused ? "border-gray-900" : "border-gray-200",
         )}
       >

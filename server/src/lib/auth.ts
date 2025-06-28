@@ -57,7 +57,7 @@ This code expires in 5 minutes.
 If you didn’t request this, ignore this email.
 
 Thanks,  
-Fidel AI
+ ፊደል <Text className="text-secondary">AI</Text>
               `,
             });
             console.log("[OTP SEND] Verification email sent successfully.");
@@ -75,7 +75,7 @@ Use the following code to reset your password:
 This code will expire in 5 minutes. If you did not request a password reset, please ignore this email.
 
 Thanks,
-Fidel AI
+ ፊደል <Text className="text-secondary">AI</Text>
             `;
 
             await sendEmail({ to: email, subject, text });

@@ -214,7 +214,7 @@ const NavBar = () => {
               style={{ color: textColor }}
               className="text-xl font-semibold"
             >
-              pAI
+               ፊደል <Text className="text-secondary">AI</Text>
             </Text>
           </TouchableOpacity>
 

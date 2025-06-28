@@ -86,7 +86,7 @@ export default function VerifyEmailScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-primary"
       showsVerticalScrollIndicator={false}
     >
       <View className="pt-16 pb-8 px-6 relative">
