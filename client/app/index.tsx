@@ -24,7 +24,6 @@ interface SessionResponse {
 
 export default function SplashScreen() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -53,8 +52,6 @@ export default function SplashScreen() {
       } catch (err) {
         console.error("Error getting session:", err);
         router.replace("/welcome");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -62,7 +59,7 @@ export default function SplashScreen() {
   }, [router]);
 
   return (
-    <View className="flex-1 bg-white items-center justify-center px-6">
+    <View className="flex-1 bg-primary items-center justify-center px-6">
       <View className="flex-1 items-center justify-center">
         <Image
           source={require("@/assets/images/logo.png")}
@@ -76,13 +73,13 @@ export default function SplashScreen() {
           accessibilityLabel="Fidel Logo"
         />
         <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-          እንኳን ወደ ፊደል AI በደና መጡ!
+          እንኳን ወደ  ፊደል <Text className="text-secondary">AI</Text> በደና መጡ!
         </Text>
         {/* remove loading ui */}
       </View>
 
       <View className="pb-8">
-        <Text className="text-lg font-bold text-gray-900 mb-1">pAI</Text>
+        <Text className="text-lg font-bold text-gray-900 mb-1"> ፊደል <Text className="text-secondary">AI</Text></Text>
         <Text className="text-sm text-gray-500">Version 1.0</Text>
       </View>
     </View>

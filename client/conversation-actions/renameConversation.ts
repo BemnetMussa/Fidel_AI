@@ -3,7 +3,7 @@ import { baseURL } from "@/lib/auth-client";
 import axios from "axios";
 
 export const renameConversationTitle = async (
-  id: number,
+  id: string,
   newTitle: string
 ): Promise<void> => {
   console.log("rename conversation title is called");

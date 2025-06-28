@@ -20,16 +20,22 @@ export default function ChatView() {
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
     const loadCachedAndFetchMessage = async () => {
-      // Clear messages immediately when chatId changes for smooth transition
-      setMessages([]);
-
-      const cached = await getCachedMessages();
-      if (cached.length) {
-        setMessages(cached);
-      }
 
       if (typeof chatId === "string") {
         setConversationId(chatId);
+        const cached = await getCachedMessages(chatId);
+        if (cached.length) {
+          setMessages(cached);
+        } else {
+          // Optionally, initial AI greeting if no cached messages
+          setMessages([
+            {
+              sender: "ai",
+              text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+        }
         await loadingMessage(chatId);
       }
     };
@@ -59,23 +65,13 @@ export default function ChatView() {
         timestamp: msg.createdAt,
       }));
 
-      // Only set messages if there are actual messages from the backend
-      // Otherwise, show the initial greeting for new conversations
-      if (formattedMessages.length > 0) {
-        setMessages(formattedMessages);
-        await saveMessages(formattedMessages);
-      } else {
-        const initialMessage: Message[] = [
-          {
-            sender: "ai",
-            text: "Hi! I'm your AI assistant powered by Gemini. How can I help you today?",
-            timestamp: new Date().toISOString(),
-          },
-        ];
-        setMessages(initialMessage);
-      }
+
+      setMessages(formattedMessages);
+      await saveMessages(convId, formattedMessages);
+
     } catch (error) {
       console.error("Error loading conversations:", error);
+      console.log(error);
       Alert.alert("Error", "Failed to load messages.");
 
       const initialMessage: Message[] = [
@@ -113,27 +109,28 @@ export default function ChatView() {
       setIsLoading(true);
       console.log("Sending message to Gemini:", userMessage);
 
-      // Determine the API endpoint based on whether we have a conversationId
-      const apiUrl = conversationId
-        ? `${baseURL}/api/message/${conversationId}`
-        : `${baseURL}/api/message`; // For new conversations without ID
+
+      console.log("this is conversation is", conversationId);
 
       const response = await axios.post(
-        apiUrl,
+        conversationId
+          ? `${baseURL}/api/message/${conversationId}`
+          : `${baseURL}/api/message`,
+
         { content: userMessage },
         { withCredentials: true }
       );
 
       const {
-        aiMessage,
-        userMessage: savedUserMessage,
+        message: { aiMessage, userMessage: savedUserMessage },
         conversationId: returnedId,
         conversation, // The backend should return the conversation object
       } = response.data;
 
-      // If this is a new conversation, update the conversationId and cache
+
+      const usedConversationId = conversationId || returnedId;
+
       if (!conversationId && returnedId) {
-        console.log("New conversationId:", returnedId);
         setConversationId(returnedId.toString());
 
         // Update cached conversations with the new conversation
@@ -143,7 +140,6 @@ export default function ChatView() {
       }
 
       const newMessages: Message[] = [
-        ...messages,
         {
           sender: "user",
           text: savedUserMessage.content,
@@ -156,8 +152,10 @@ export default function ChatView() {
         },
       ];
 
-      setMessages(newMessages);
-      await saveMessages(newMessages);
+      console.log("new message retirive", newMessages);
+
+      setMessages((prev) => [...prev, ...newMessages]);
+      await saveMessages(usedConversationId, newMessages);
     } catch (error) {
       console.error("Error calling backend:", error);
       Alert.alert("Error", "Failed to send message. Try again.");

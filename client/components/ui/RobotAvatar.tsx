@@ -27,16 +27,16 @@ export const RobotAvatar: React.FC<RobotAvatarProps> = ({ size = "medium", class
       <View className="w-full h-full bg-gray-800 rounded-2xl items-center justify-center relative">
         {/* Eyes */}
         <View className="flex-row space-x-1 mb-1">
-          <View className="w-1.5 h-1.5 bg-white rounded-full" />
-          <View className="w-1.5 h-1.5 bg-white rounded-full" />
+          <View className="w-1.5 h-1.5 bg-primary rounded-full" />
+          <View className="w-1.5 h-1.5 bg-primary rounded-full" />
         </View>
 
         {/* Mouth/speaker */}
-        <View className="w-3 h-1 bg-white rounded-full" />
+        <View className="w-3 h-1 bg-primary rounded-full" />
 
         {/* Speech bubble */}
-        <View className="absolute -top-2 -right-1 bg-white rounded-full w-6 h-6 items-center justify-center border border-gray-200">
-          <Text className="text-xs font-bold text-gray-800">pAI</Text>
+        <View className="absolute -top-2 -right-1 bg-primary rounded-full w-6 h-6 items-center justify-center border border-gray-200">
+          <Text className="text-xs font-bold text-gray-800"> ፊደል <Text className="text-secondary">AI</Text></Text>
         </View>
       </View>
     </View>

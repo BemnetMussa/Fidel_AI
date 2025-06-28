@@ -66,7 +66,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 4, onComplete, erro
               if (ref) inputRefs.current[index] = ref
             }}
             className={cn(
-              "w-16 h-16 border-2 rounded-2xl text-center text-2xl font-bold text-gray-900 bg-white",
+              "w-16 h-16 border-2 rounded-2xl text-center text-2xl font-bold text-gray-900 bg-primary",
               error ? "border-red-500" : activeIndex === index ? "border-gray-900" : "border-gray-200",
             )}
             value={digit}

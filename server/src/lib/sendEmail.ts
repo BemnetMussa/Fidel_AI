@@ -20,7 +20,7 @@ interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, text, html }: SendEmailOptions) {
   const info = await transporter.sendMail({
-    from: `"Fidel AI" <${process.env.SMTP_USER}>`,
+    from: `" ፊደል <Text className="text-secondary">AI</Text>" <${process.env.SMTP_USER}>`,
     to,
     subject,
     text,

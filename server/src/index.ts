@@ -6,7 +6,7 @@ import converstationRouter from "./routes/conversationRouter";
 import messageRouter from "./routes/messageRoute";
 import cors from "cors";
 import userRouter from "./routes/authRoute";
-
+ 
 dotenv.config();
 
 const app = express();
@@ -21,7 +21,8 @@ app.use(express.json());
 // Configure CORS middleware
 app.use(
   cors({
-    origin: "exp://192.168.43.216:8081", // or your frontend URL
+
+    origin: "exp://192.168.238.211:8081", // or your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -30,6 +31,7 @@ app.use(
 app.use("/api/conversation", converstationRouter);
 app.use("/api/message", messageRouter);
 app.use("/api", userRouter);
+
 
 async function main() {
   app.listen(PORT, () => {

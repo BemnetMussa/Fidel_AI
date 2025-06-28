@@ -5,6 +5,8 @@ import "@/global.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Toast from "react-native-toast-message";
 import { useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
+import { GlobalToast } from "@/components/ui/GlobalToast";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -23,6 +25,22 @@ export default function RootLayout() {
         visibilityTime: duration,
       });
     };
+  }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const session = await authClient.getSession();
+
+      if (!session) {
+        return (global as any).showAppToast({
+          message: "unauthorized!",
+          type: "error",
+          duration: 3000,
+        });
+      }
+    };
+
+    checkAuth();
   }, []);
 
   return (
