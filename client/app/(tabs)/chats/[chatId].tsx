@@ -6,6 +6,7 @@ import { baseURL } from "@/lib/auth-client";
 import ChatLayout from "./ChatLayout";
 import ChatMessages, { Message } from "./ChatMessages";
 import { getCachedMessages, saveMessages } from "@/lib/storage";
+import { getCachedConversation, saveConversation } from "@/lib/storage";
 
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
@@ -21,7 +22,7 @@ export default function ChatView() {
     const loadCachedAndFetchMessage = async () => {
       // Clear messages immediately when chatId changes for smooth transition
       setMessages([]);
-      
+
       const cached = await getCachedMessages();
       if (cached.length) {
         setMessages(cached);
@@ -90,13 +91,35 @@ export default function ChatView() {
     }
   };
 
+  // Helper function to update cached conversations
+  const updateCachedConversations = async (newConversation: any) => {
+    try {
+      const cachedConversations = await getCachedConversation();
+      const conversationExists = cachedConversations.some(
+        (conv) => conv.id === newConversation.id
+      );
+
+      if (!conversationExists) {
+        const updatedConversations = [newConversation, ...cachedConversations];
+        await saveConversation(updatedConversations);
+      }
+    } catch (error) {
+      console.error("Error updating cached conversations:", error);
+    }
+  };
+
   const sendMessageToGemini = async (userMessage: string) => {
     try {
       setIsLoading(true);
       console.log("Sending message to Gemini:", userMessage);
 
+      // Determine the API endpoint based on whether we have a conversationId
+      const apiUrl = conversationId
+        ? `${baseURL}/api/message/${conversationId}`
+        : `${baseURL}/api/message`; // For new conversations without ID
+
       const response = await axios.post(
-        conversationId && `${baseURL}/api/message/${conversationId}`,
+        apiUrl,
         { content: userMessage },
         { withCredentials: true }
       );
@@ -105,11 +128,18 @@ export default function ChatView() {
         aiMessage,
         userMessage: savedUserMessage,
         conversationId: returnedId,
+        conversation, // The backend should return the conversation object
       } = response.data;
 
+      // If this is a new conversation, update the conversationId and cache
       if (!conversationId && returnedId) {
         console.log("New conversationId:", returnedId);
         setConversationId(returnedId.toString());
+
+        // Update cached conversations with the new conversation
+        if (conversation) {
+          await updateCachedConversations(conversation);
+        }
       }
 
       const newMessages: Message[] = [
@@ -173,3 +203,4 @@ export default function ChatView() {
     </ChatLayout>
   );
 }
+ 

@@ -20,6 +20,9 @@ export const createMessage = async (
       ? parseInt(req.params.conversationId)
       : null;
 
+    // Track if this is a new conversation for response
+    let isNewConversation = false;
+
     // If no conversationId or invalid, create a new conversation
     let conversation = conversationId
       ? await prisma.conversation.findUnique({ where: { id: conversationId } })
@@ -34,6 +37,7 @@ export const createMessage = async (
         },
       });
       conversationId = conversation.id;
+      isNewConversation = true;
       console.log("New conversation created with ID:", conversationId);
     }
 
@@ -43,6 +47,7 @@ export const createMessage = async (
       next(error);
       return;
     }
+
     // 1. Save user message
     const userMessage = await prisma.message.create({
       data: {
@@ -79,17 +84,25 @@ export const createMessage = async (
     });
 
     // Update conversation timestamp
-    await prisma.conversation.update({
+    const updatedConversation = await prisma.conversation.update({
       where: { id: conversationId },
       data: { updatedAt: new Date() },
     });
 
-    // 4. Return conversation ID and both messages
-    res.status(201).json({
+    // 4. Prepare response - include conversation object for frontend caching
+    const response: any = {
       conversationId,
       userMessage,
       aiMessage,
-    });
+    };
+
+    // Include conversation object if it's a new conversation
+    // This helps frontend cache the conversation in the sidebar
+    if (isNewConversation) {
+      response.conversation = updatedConversation;
+    }
+
+    res.status(201).json(response);
   } catch (error) {
     console.error("Chat handling error:", error);
     next(error);
