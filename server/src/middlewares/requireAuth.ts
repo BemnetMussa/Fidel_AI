@@ -1,6 +1,7 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthenticatedRequest } from "../types/express";
 import { auth } from "../lib/auth";
+import { fromNodeHeaders } from "better-auth/node";
 
 export const requireAuth = async (
   req: Request,
@@ -8,26 +9,13 @@ export const requireAuth = async (
   next: NextFunction
 ) => {
   try {
-    const headers = new Headers();
-
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (value !== undefined) {
-        // Headers require string or string[]
-        if (Array.isArray(value)) {
-          headers.set(key, value.join(","));
-        } else {
-          headers.set(key, value);
-        }
-      }
-    }
-
     const session = await auth.api.getSession({
-      headers,
-      query: { disableCookieCache: true },
+      headers: fromNodeHeaders(req.headers),
     });
 
     if (!session?.user?.id) {
-      return res.status(403).json({ error: "Unauthorized: No user ID" });
+      res.status(403).json({ error: "Unauthorized: No user ID" });
+      return;
     }
 
     // Attach userId to request for downstream use
@@ -39,6 +27,7 @@ export const requireAuth = async (
     next(); // Continue to the protected route
   } catch (err) {
     console.error("Auth error:", err);
-    return res.status(403).json({ error: "Unauthorized" });
+    res.status(403).json({ error: "Unauthorized" });
+    return;
   }
 };
