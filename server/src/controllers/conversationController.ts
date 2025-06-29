@@ -120,16 +120,12 @@ export const deleteConversationById = async (
 ) => {
   const conversationId = parseInt(req.params.conversationId);
 
-  console.log("conversation id in the controller:", conversationId);
-
   try {
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: conversationId,
       },
     });
-
-    console.log("fetch conversation form db to delete it", conversation);
 
     if (!conversation) {
       const error = new Error("conversation does not exist");
@@ -147,7 +143,6 @@ export const deleteConversationById = async (
     });
 
     if (!deleteMessageFirst) {
-      console.log("can not delete message form the convesation");
       const error = new Error("can not delete message");
       res.status(401);
       next(error);
@@ -160,7 +155,6 @@ export const deleteConversationById = async (
       },
     });
 
-    console.log("delete conversation using id", deleted);
     res.status(200).json({
       message: "delete conversation successfuly",
     });
@@ -180,8 +174,6 @@ export const updateConversation = async (
   const conversationId = parseInt(req.params.conversationId);
 
   const { title } = req.body;
-
-  console.log("this is the income data", conversationId, title);
 
   try {
     const conversation = await prisma.conversation.findUnique({

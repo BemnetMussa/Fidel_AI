@@ -8,12 +8,15 @@ import { Colors } from "@/constants/Colors";
 import ChatLayout from "./ChatLayout";
 
 import CardSlider from "./CardSlider";
-import { saveConversation, saveMessages } from "@/lib/storage";
+import {
+  getCachedMessages,
+  saveConversation,
+  saveMessages,
+} from "@/lib/storage";
 import { Conversation } from "./SideDrawer";
 import { Message } from "./ChatMessages";
 
 // import CardSlider from "./CardSlider";
-
 
 export default function Welcome() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,12 +38,46 @@ export default function Welcome() {
       if (!newChatId) throw new Error("No new chat ID returned from server");
 
       const conversation: Conversation = response.data.conversation;
-      const messages: Message[] = response.data.message
+
+      // this a raw data from db
+      const rawMessage: Message[] = response.data.message
         ? [response.data.message]
         : response.data.messages;
 
+      // and we are going to change that to fit to the type Message
+      const messages: Message[] = rawMessage.flatMap((msgPair: any) => {
+        const flattened: Message[] = [];
+
+        // spearating ai message and user message
+        if (msgPair.userMessage) {
+          flattened.push({
+            sender: "user",
+            text: msgPair.userMessage.content,
+            timestamp: msgPair.userMessage.createdAt,
+            id: msgPair.userMessage.id,
+          });
+        }
+
+        if (msgPair.aiMessage) {
+          flattened.push({
+            sender: "ai",
+            text: msgPair.aiMessage.content,
+            timestamp: msgPair.aiMessage.createdAt,
+            id: msgPair.aiMessage.id,
+          });
+        }
+
+        return flattened;
+      });
+
+      console.log("response form message at first chat", messages);
+
       await saveMessages(newChatId, messages);
       await saveConversation([conversation]);
+
+      const data = await getCachedMessages(newChatId);
+
+      console.log("this is data in new conversation", data);
 
       router.push({
         pathname: "/chats/[chatId]",
@@ -75,7 +112,8 @@ export default function Welcome() {
           <Text
             className={`text-4xl ${theme === "dark" ? "text-white" : "text-black"} font-extrabold text-center mb-4`}
           >
-            let's get started{/* ወደ  ፊደል <Text className="text-secondary">AI</Text> እንኳን ደህና{"\n"}መጡ። */}
+            let's get started
+            {/* ወደ  ፊደል <Text className="text-secondary">AI</Text> እንኳን ደህና{"\n"}መጡ። */}
           </Text>
         </View>
 
