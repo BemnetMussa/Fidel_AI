@@ -49,13 +49,20 @@ export const submitFeedback = async (
       res.status(400).json({ message: "Feedback and email are required." });
       return
     }
+    const feedbackCreate = await prisma.feedback.create({
+      data: {
+        email: email,
+        message: feedback,
+      },
+    });
 
-    console.log("New Feedback");
-    console.log("Email:", email);
-    console.log("Feedback:", feedback);
-
+    if (!feedbackCreate) {
+      res.status(500).json({ message: "Failed to create feedback." });
+      return;
+    }
     res.status(200).json({ message: "Feedback submitted successfully." });
   } catch (error) {
+    res.status(500).json({ message: "Failed to submit feedback." });
     next(error);
   }
 };

@@ -39,7 +39,11 @@ export default function FeedbackModal({ visible, onClose, userEmail }: FeedbackM
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-center items-center bg-black bg-opacity-50 px-6">
+     <View
+  className="flex-1 justify-center items-center px-6"
+  style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} 
+>
+
         <View className="bg-white rounded-lg p-6 w-full">
           <Text className="text-lg font-semibold mb-3">እባክዎ አስተያየትዎን ያካትቱ</Text>
           <TextInput
@@ -53,7 +57,7 @@ export default function FeedbackModal({ visible, onClose, userEmail }: FeedbackM
           />
           <View className="flex-row justify-end mt-4 space-x-4">
             <TouchableOpacity onPress={onClose}>
-              <Text className="text-gray-500 font-semibold text-base">Cancel</Text>
+              <Text className="text-gray-500 font-semibold text-base pr-4">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSubmitFeedback}>
               <Text className="text-blue-600 font-semibold text-base">Submit</Text>
