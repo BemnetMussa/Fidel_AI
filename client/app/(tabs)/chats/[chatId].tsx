@@ -7,6 +7,7 @@ import ChatLayout from "./ChatLayout";
 import ChatMessages, { Message } from "./ChatMessages";
 import { getCachedMessages, saveMessages } from "@/lib/storage";
 
+
 export default function ChatView() {
   const { chatId } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,9 @@ export default function ChatView() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const [conversationId, setConversationId] = useState<string>("");
+  const [isFetching, setIsFetching] = useState(false); // scroll up loading
+const [isSending, setIsSending] = useState(false);   // AI typing spinner
+
 
   // Load cached messages on mount or when chatId changes
   useEffect(() => {
@@ -34,13 +38,48 @@ export default function ChatView() {
               timestamp: new Date().toISOString(),
             },
           ]);
+          await loadingMessage(chatId);
         }
-        await loadingMessage(chatId);
+      
       }
     };
 
     loadCachedAndFetchMessage();
   }, [chatId]);
+
+  const [hasMore, setHasMore] = useState(true);
+const [cursor, setCursor] = useState<string | null>(null);
+
+const loadMoreMessages = async () => {
+  if (!conversationId || !hasMore || isFetching) return;
+
+  setIsFetching(true);
+  try {
+    const res = await axios.get(
+      `${baseURL}/api/message/${conversationId}?cursor=${cursor}&limit=15`,
+      { withCredentials: true }
+    );
+
+    const { messages: rawMessages, nextCursor } = res.data;
+
+    const newMessages: Message[] = rawMessages.map((msg: any) => ({
+      sender: msg.sender.toLowerCase() === "user" ? "user" : "ai",
+      text: msg.content,
+      timestamp: msg.createdAt,
+    }));
+
+    setMessages((prev) => [...newMessages, ...prev]); // prepend
+    setCursor(nextCursor);
+    setHasMore(Boolean(nextCursor));
+
+    await saveMessages(conversationId, [...newMessages, ...messages]);
+  } catch (err) {
+    console.error("Failed to load more:", err);
+  } finally {
+    setIsFetching(false);
+  }
+};
+
 
   // Fetch fresh messages from backend
   const loadingMessage = async (convId: string) => {
@@ -75,63 +114,60 @@ export default function ChatView() {
     }
   };
 
-  const sendMessageToGemini = async (userMessage: string) => {
-    try {
-      setIsLoading(true);
-      console.log("Sending message to Gemini:", userMessage);
+ const sendMessageToGemini = async (userMessage: string) => {
+  try {
+    setIsSending(true);
 
-      console.log("this is conversation is", conversationId);
+    const response = await axios.post(
+      conversationId
+        ? `${baseURL}/api/message/${conversationId}`
+        : `${baseURL}/api/message`,
+      { content: userMessage },
+      { withCredentials: true }
+    );
 
-      const response = await axios.post(
-        conversationId
-          ? `${baseURL}/api/message/${conversationId}`
-          : `${baseURL}/api/message`,
-        { content: userMessage },
-        { withCredentials: true }
-      );
+    const {
+      message: { aiMessage },
+      conversationId: returnedId,
+    } = response.data;
 
-      const {
-        message: { aiMessage, userMessage: savedUserMessage },
-        conversationId: returnedId,
-      } = response.data;
-
-      const usedConversationId = conversationId || returnedId;
-      if (!conversationId && returnedId) {
-        setConversationId(returnedId.toString());
-      }
-
-      const newMessages: Message[] = [
-        {
-          sender: "user",
-          text: savedUserMessage.content,
-          timestamp: savedUserMessage.createdAt,
-        },
-        {
-          sender: "ai",
-          text: aiMessage.content,
-          timestamp: aiMessage.createdAt,
-        },
-      ];
-
-      console.log("new message retirive", newMessages);
-
-      setMessages((prev) => [...prev, ...newMessages]);
-      await saveMessages(usedConversationId, newMessages);
-    } catch (error) {
-      console.error("Error calling backend:", error);
-      Alert.alert("Error", "Failed to send message. Try again.");
-    } finally {
-      setIsLoading(false);
+    const usedConversationId = conversationId || returnedId;
+    if (!conversationId && returnedId) {
+      setConversationId(returnedId.toString());
     }
-  };
 
-  const sendMessage = async () => {
-    if (input.trim()) {
-      const userMessage = input.trim();
-      setInput("");
-      await sendMessageToGemini(userMessage);
-    }
-  };
+    const newAiMessage: Message = {
+      sender: "ai",
+      text: aiMessage.content,
+      timestamp: aiMessage.createdAt,
+    };
+
+    setMessages((prev) => [...prev, newAiMessage]);
+    await saveMessages(usedConversationId, [newAiMessage]); // save only the AI one
+  } catch (error) {
+    console.error("Error calling backend:", error);
+    Alert.alert("Error", "Failed to send message. Try again.");
+  } finally {
+    setIsSending(false);
+  }
+};
+
+const sendMessage = async () => {
+  if (input.trim()) {
+    const userMessage = input.trim();
+    setInput("");
+
+    const newUserMessage: Message = {
+      sender: "user", 
+      text: userMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, newUserMessage]);
+    await sendMessageToGemini(userMessage);
+  }
+};
+
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -147,11 +183,15 @@ export default function ChatView() {
       onSendMessage={sendMessage}
       isLoading={isLoading || loading}
     >
-      <ChatMessages
-        messages={messages}
-        isLoading={isLoading || loading}
-        scrollViewRef={scrollViewRef}
-      />
+<ChatMessages
+  messages={messages}
+  isSending={isSending}
+  isFetching={isFetching}
+  scrollViewRef={scrollViewRef}
+  onScrollTop={loadMoreMessages}
+/>
+
+
     </ChatLayout>
   );
 }

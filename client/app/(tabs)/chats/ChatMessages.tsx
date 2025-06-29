@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -26,17 +26,43 @@ export interface Message {
 
 interface ChatMessagesProps {
   messages: Message[];
-  isLoading: boolean;
+  isSending: boolean;   // 👈 AI is typing
+  isFetching: boolean;  // 👈 loading more
   scrollViewRef: React.RefObject<ScrollView | null>;
+  onScrollTop?: () => void;
 }
+
+// Fidel AI thinking animation 
+function TypingIndicator() {
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Text style={{ color: "#888", fontStyle: "italic" }}>
+      ፈደል AI is thinking {dots}
+    </Text>
+  );
+}
+
+
+
 
 export default function ChatMessages({
   messages,
-  isLoading,
+  isSending,
+  isFetching,
   scrollViewRef,
+  onScrollTop,
 }: ChatMessagesProps) {
   const { theme } = useTheme();
   const textColor = Colors[theme].text;
+  
 
   const handleCopy = (text: string) => {
     Clipboard.setStringAsync(text);
@@ -56,14 +82,35 @@ export default function ChatMessages({
     backgroundColor: theme === "light" ? "white" : "",
   });
 
+const handleScroll = (e: any) => {
+  const scrollOffsetY = e.nativeEvent.contentOffset.y;
+
+  // Increased threshold from 20 to 50 for better detection
+  if (scrollOffsetY <= 50 && !isFetching) {
+    if (onScrollTop) {
+      onScrollTop();  // call function to load older messages
+    }
+  }
+};
+
+
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      className="flex-1 py-4 px-3"
-      contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
+<ScrollView
+  ref={scrollViewRef}
+  onScroll={handleScroll}
+  scrollEventThrottle={16}
+  className="flex-1 py-4 px-3"
+  contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+  keyboardShouldPersistTaps="handled"
+  showsVerticalScrollIndicator={false}
+>
+  {/* Loading spinner at top */}
+  {isFetching && (
+    <View style={{ marginBottom: 8, alignItems: "center" }}>
+      <ActivityIndicator size="small" color="#999" />
+    </View>
+  )}
+
       {messages.map((msg, idx) => (
         <View
           key={idx}
@@ -132,19 +179,18 @@ export default function ChatMessages({
         </View>
       ))}
 
-      {isLoading && (
-        <View className="flex-row justify-start my-1">
-          <View
-            className="rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3"
-            style={getAiBubbleStyle()}
-          >
-            <ActivityIndicator
-              size="small"
-              color={theme === "light" ? "#666" : "#9BA1A6"}
-            />
-          </View>
-        </View>
-      )}
+{isSending && (
+  <View className="flex-row justify-start my-1">
+    <View
+      className="rounded-r-2xl rounded-tl-2xl rounded-bl-md px-4 py-3"
+      style={getAiBubbleStyle()}
+    >
+      <TypingIndicator />
+    </View>
+  </View>
+)}
+
+
     </ScrollView>
   );
 }
