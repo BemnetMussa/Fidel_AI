@@ -75,11 +75,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       const { conversation } = response.data;
 
 
-      if (Array.isArray(converstation)) {
+      if (Array.isArray(conversation)) {
         const merged = [
-          ...converstation,
+          ...conversation,
           ...cached.filter(
-            (c) => !converstation.find((f: Conversation) => f.id === c.id)
+            (c) => !conversation.find((f: Conversation) => f.id === c.id)
           ),
         ];
         setConversations(merged);
@@ -93,19 +93,9 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     }
   };
 
-  // Refresh conversations when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      loadConversations();
-    }, [])
-  );
-
-  // Also load when drawer becomes visible
   useEffect(() => {
-    if (isVisible) {
-      loadConversations();
-    }
-  }, [isVisible]);
+    loadConversations();
+  }, []);
 
   const handleNewConversation = async () => {
     router.replace("/chats");
@@ -130,26 +120,18 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           setNewTitle(conversation.title);
           setRenameModalVisible(true);
         },
+           },
+      {
+        text: "Delete",
+        onPress: () =>
+          confirmDeleteConversation({ 
+            setConversations, 
+            conversation }),
+        style: "destructive",
       },
-    
-        {
-          text: "Delete",
-          onPress: async () => {
-            await confirmDeleteConversation({
-              setConversations,
-              conversation,
-            });
-            // Refresh conversations after deletion
-            loadConversations();
-          },
-          style: "destructive",
-        },
-        { text: "Cancel", style: "cancel" },
-      ],
-      { cancelable: true }
-    );
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
-
 
 
 
@@ -333,12 +315,11 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-       
                 onPress={ () => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
-                  <Icon name="chatbox-ellipses" size={18} color={iconColor} />
+                  <Icon name="chatbox" size={18} color={iconColor} />
                   <Text style={{ color: textColor }} className="ml-4 text-base">
                     አስተያየት ይስጡ
                   </Text>
