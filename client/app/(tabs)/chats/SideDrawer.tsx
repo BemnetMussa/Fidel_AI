@@ -104,23 +104,35 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
   };
 
   const handleConversationOptions = (conversation: Conversation) => {
-    Alert.alert("Conversation Options", `Manage \"${conversation.title}\"`, [
-      {
-        text: "Rename",
-        onPress: () => {
-          setSelectedConversation(conversation);
-          setNewTitle(conversation.title);
-          setRenameModalVisible(true);
+    Alert.alert(
+      "Conversation Options",
+      `Manage \"${conversation.title}\"`,
+      [
+        {
+          text: "Rename",
+          onPress: () => {
+            setSelectedConversation(conversation);
+            setNewTitle(conversation.title);
+            setRenameModalVisible(true);
+          },
         },
-      },
+        {
+          text: "Delete",
+          onPress: () =>
+            confirmDeleteConversation({ setConversations, conversation }),
+          style: "destructive",
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
       {
-        text: "Delete",
-        onPress: () =>
-          confirmDeleteConversation({ setConversations, conversation }),
-        style: "destructive",
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+        cancelable: true,
+      }
+    );
+  };
+
+  const handleUpdatesAndFAQ = () => {
+    console.log("Opening Updates & FAQ");
+    onClose();
   };
 
   const handleRename = async () => {
