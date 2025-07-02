@@ -5,6 +5,15 @@ import axios from "axios";
 
 // Gemini credentials
 const GEMINI_API_URL = process.env.GEMINI_API_URL!;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+
+// Helper function to format messages for Gemini API
+const formatMessagesForGemini = (messages: any[]) => {
+  return messages.map((msg) => ({
+    role: msg.sender === "USER" ? "user" : "model",
+    parts: [{ text: msg.content }],
+  }));
+};
 
 export const createMessage = async (
   req: Request,
@@ -43,6 +52,18 @@ export const createMessage = async (
       next(error);
       return;
     }
+
+    // Get previous messages from the conversation for context
+    const previousMessages = await prisma.message.findMany({
+      where: {
+        conversationId: conversationId!,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      take: 10,
+    });
+
     // 1. Save user message
     const userMessage = await prisma.message.create({
       data: {
@@ -52,17 +73,52 @@ export const createMessage = async (
       },
     });
 
+    // 2. Prepare conversation history for Gemini
+    // Format previous messages for Gemini API
+    const conversationHistory = formatMessagesForGemini(previousMessages);
+
+    // Add the current user message
+    conversationHistory.push({
+      role: "user",
+      parts: [{ text: content }],
+    });
+
     // 2. Call Gemini API
+    // const geminiResponse = await axios.post(
+    //   GEMINI_API_URL,
+    //   {
+    //     contents: conversationHistory,
+    //     generationConfig: {
+    //       temperature: 0.7,
+    //       topK: 40,
+    //       topP: 0.95,
+    //       maxOutputTokens: 1024,
+    //     },
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       // You can add your Gemini API key here if needed
+    //       Authorization: `Bearer ${GEMINI_API_KEY}`,
+    //     },
+    //   }
+    // );
+
+    // TEMPORARY: Don't Remove this, just comment it out
     const geminiResponse = await axios.post(
-      GEMINI_API_URL,
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
       {
-        contents: [{ parts: [{ text: content }] }],
+        contents: conversationHistory,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        },
       },
       {
         headers: {
           "Content-Type": "application/json",
-          // You can add your Gemini API key here if needed
-          // "Authorization": `Bearer ${GEMINI_API_KEY}`,
         },
       }
     );
