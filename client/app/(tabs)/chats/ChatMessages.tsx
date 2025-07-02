@@ -77,6 +77,7 @@ export default function ChatMessages({
   const getAiBubbleStyle = () => ({
     backgroundColor: theme === "light" ? "white" : "",
   });
+  // Uncomment this for AI chat bubble
   // const getAiBubbleStyle = () => ({
   //   backgroundColor: theme === "light" ? "white" : "#1a1a1a",
   //   borderWidth: theme === "light" ? 1 : 0,
@@ -333,6 +334,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   aiBubble: {
+  // Uncomment this for AI chat bubble
   //   shadowColor: "#383838",
   //   shadowOffset: { width: 0, height: 1 },
   //   shadowOpacity: 0.1,
