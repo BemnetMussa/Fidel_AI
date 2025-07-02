@@ -26,10 +26,11 @@ export const auth = betterAuth({
   },
   socialProviders: {
     // Uncomment and fill to enable social providers
-    // github: {
-    //   clientId: process.env.GITHUB_CLIENT_ID!,
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    // },
+    github: {
+      prompt: "select_account",
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
   },
   plugins: [
     emailOTP({

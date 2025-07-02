@@ -79,12 +79,8 @@ export default function LoginScreen() {
     } catch (error) {
       console.error("Login error:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  };
-
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Login with ${provider}`);
   };
 
   return (
@@ -95,7 +91,6 @@ export default function LoginScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <AuthHeader title="" showBackButton />
         <Text className="m-5 text-4xl font-bold">Login Your Account</Text>
-
 
         <View className="px-6 pb-8 mt-5">
           <Controller
@@ -165,10 +160,7 @@ export default function LoginScreen() {
             Continue With Accounts
           </Text>
 
-          <SocialButtons
-            onGooglePress={() => handleSocialLogin("Google")}
-            onFacebookPress={() => handleSocialLogin("Facebook")}
-          />
+          <SocialButtons />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

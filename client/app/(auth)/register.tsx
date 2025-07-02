@@ -86,11 +86,6 @@ export default function RegisterScreen() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Register with ${provider}`);
-    // TODO: Implement social registration
   };
 
   return (
@@ -99,10 +94,8 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-   
         <AuthHeader title="" showBackButton />
         <Text className="m-5 text-4xl font-bold">Create your Account</Text>
-
 
         <View className="px-6 pb-8 mt-5">
           <Controller
@@ -177,10 +170,7 @@ export default function RegisterScreen() {
             Continue With Accounts
           </Text>
 
-          <SocialButtons
-            onGooglePress={() => handleSocialLogin("Google")}
-            onFacebookPress={() => handleSocialLogin("Facebook")}
-          />
+          <SocialButtons />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
