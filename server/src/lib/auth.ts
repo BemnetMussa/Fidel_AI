@@ -25,12 +25,16 @@ export const auth = betterAuth({
     autoSignIn: false,
   },
   socialProviders: {
-    // Uncomment and fill to enable social providers
     github: {
       prompt: "select_account",
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
+    // facebook: {
+    //   prompt: "select_account",
+    //   clientId: process.env.FACEBOOK_CLIENT_ID!,
+    //   clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    // },
   },
   plugins: [
     emailOTP({
