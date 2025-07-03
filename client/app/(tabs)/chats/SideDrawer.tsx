@@ -26,7 +26,6 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import FeedbackModal from "./FeedbackModal";
 
-
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75;
 
@@ -74,7 +73,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
       const { conversation } = response.data;
 
-
       if (Array.isArray(conversation)) {
         const merged = [
           ...conversation,
@@ -84,7 +82,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         ];
         setConversations(merged);
         await saveConversation(merged);
-
       }
     } catch (error) {
       console.error("Error loading conversations:", error);
@@ -99,7 +96,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleNewConversation = async () => {
     router.replace("/chats");
-
   };
 
   const handleConversationPress = (conversation: Conversation) => {
@@ -120,25 +116,23 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           setNewTitle(conversation.title);
           setRenameModalVisible(true);
         },
-           },
+      },
       {
         text: "Delete",
         onPress: () =>
-          confirmDeleteConversation({ 
-            setConversations, 
-            conversation }),
+          confirmDeleteConversation({
+            setConversations,
+            conversation,
+          }),
         style: "destructive",
       },
       { text: "Cancel", style: "cancel" },
     ]);
   };
 
-
-
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
     onClose();
-
   };
 
   const handleRename = async () => {
@@ -200,7 +194,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       </View>
     </TouchableOpacity>
   );
-
 
   return (
     <>
@@ -315,20 +308,17 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={ () => setFeedbackModalVisible(true)}
+                onPress={() => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
-                  <Icon name="chatbox" size={18} color={iconColor} />
+                  <Icon name="message-circle" size={18} color={iconColor} />
                   <Text style={{ color: textColor }} className="ml-4 text-base">
                     አስተያየት ይስጡ
                   </Text>
                 </View>
-             
-                 <Text className="text-yellow-400 text-base">⭐</Text>
 
-                 
-                
+                <Text className="text-yellow-400 text-base">⭐</Text>
               </TouchableOpacity>
               {feedbackModalVisible && (
                 <FeedbackModal
@@ -337,7 +327,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                   userEmail={""}
                 />
               )}
-
 
               <TouchableOpacity
                 onPress={toggleTheme}
