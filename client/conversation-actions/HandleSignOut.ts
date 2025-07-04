@@ -22,14 +22,20 @@ export const useHandleLogout = () => {
               fetchOptions: {
                 onSuccess: async () => {
                   await clearAllConversations();
-                  router.replace("/(auth)/login");
-                  onClose();
+                  onClose(); // close any modal or drawer
+                  setTimeout(() => {
+                    router.replace("/(auth)/login"); // navigate after UI stabilizes
+                  }, 50);
                 },
               },
             });
           } catch (error) {
-            console.error("Error logging out:", error);
-            Alert.alert("Error", "Failed to log out.");
+            console.log("Error logging out:", error);
+            (global as any).showAppToast({
+              message: "Failed to logout. Try again!",
+              type: "error",
+              duration: 3000,
+            });
           }
         },
       },

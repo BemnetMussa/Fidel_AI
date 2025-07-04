@@ -63,7 +63,12 @@ export default function ResetPasswordScreen() {
         }
       );
     } catch (error) {
-      console.error("Reset password error:", error);
+      (global as any).showAppToast({
+        message: "Failed to Reset password. Try again!",
+        type: "error",
+        duration: 3000,
+      });
+      console.log("Failed to Reset password", error);
     } finally {
       setIsLoading(false);
     }

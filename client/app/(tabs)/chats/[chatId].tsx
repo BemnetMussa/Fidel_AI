@@ -71,7 +71,12 @@ export default function ChatView() {
 
       await saveMessages(conversationId, [...newMessages, ...messages]);
     } catch (err) {
-      console.error("Failed to load more:", err);
+      console.log("Failed to load more:", err);
+      (global as any).showAppToast({
+        message: "Failed to load more!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
       setIsFetching(false);
     }
@@ -102,9 +107,12 @@ export default function ChatView() {
       setMessages(formattedMessages);
       await saveMessages(convId, formattedMessages);
     } catch (error) {
-      console.error("Error loading conversations:", error);
-      console.log(error);
-      Alert.alert("Error", "Failed to load messages.");
+      console.log("Error loading conversations:", error);
+      (global as any).showAppToast({
+        message: "Error while loading conversations!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -141,8 +149,12 @@ export default function ChatView() {
       setMessages((prev) => [...prev, newAiMessage]);
       await saveMessages(usedConversationId, [newAiMessage]); // save only the AI one
     } catch (error) {
-      console.error("Error calling backend:", error);
-      Alert.alert("Error", "Failed to send message. Try again.");
+      console.log("Error calling backend:", error);
+      (global as any).showAppToast({
+        message: "Failed to send message. Try again!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
       setIsSending(false);
     }

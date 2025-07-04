@@ -82,11 +82,16 @@ export default function RegisterScreen() {
         }
       );
     } catch (error) {
-      console.error("Registration error:", error);
+      console.log("Registration error:", error);
+      (global as any).showAppToast({
+        message: "Failed to register. Try again.!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleSocialLogin = (provider: string) => {
     console.log(`Register with ${provider}`);
@@ -99,10 +104,8 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-   
         <AuthHeader title="" showBackButton />
         <Text className="m-5 text-4xl font-bold">Create your Account</Text>
-
 
         <View className="px-6 pb-8 mt-5">
           <Controller

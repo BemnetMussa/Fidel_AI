@@ -36,7 +36,6 @@ export const fetchUser = async (
   }
 };
 
-
 export const submitFeedback = async (
   req: Request,
   res: Response,
@@ -46,8 +45,10 @@ export const submitFeedback = async (
     const { feedback, email } = req.body;
 
     if (!feedback || !email) {
-      res.status(400).json({ message: "Feedback and email are required." });
-      return
+      const error = new Error("Feedback and email are required.");
+      res.status(401);
+      next(error);
+      return;
     }
     const feedbackCreate = await prisma.feedback.create({
       data: {
@@ -57,7 +58,9 @@ export const submitFeedback = async (
     });
 
     if (!feedbackCreate) {
-      res.status(500).json({ message: "Failed to create feedback." });
+      const error = new Error("Failed to create feedback.");
+      res.status(401);
+      next(error);
       return;
     }
     res.status(200).json({ message: "Feedback submitted successfully." });
