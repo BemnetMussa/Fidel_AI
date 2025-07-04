@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/contexts/ThemeContext";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Animated,
   Image,
@@ -15,7 +15,8 @@ import {
 } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Feather";
 import SideDrawer from "./SideDrawer";
-import { useRouter, useLocalSearchParams, usePathname } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
+import { authClient } from "@/lib/auth-client";
 
 type AppRoutes =
   | ""
@@ -34,6 +35,7 @@ const NavBar = () => {
   const [dropdownAnim] = useState(new Animated.Value(0));
   const [sideDrawerVisible, setSideDrawerVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(0));
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const { theme, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -42,6 +44,30 @@ const NavBar = () => {
   const backgroundColor = Colors[theme].background;
   const textColor = Colors[theme].text;
   const iconColor = Colors[theme].icon;
+
+  const fetchUser = async () => {
+    try {
+      const session = await authClient.getSession();
+      console.log("Session:", session);
+      if (session?.data?.session?.userId && session.data.user) {
+        console.log("Using session user data");
+        setUser({
+          name: session.data.user.name || "Unknown User",
+          email: session.data.user.email || "No email",
+        });
+      } else {
+        console.log("No valid user ID in session");
+        setUser({ name: "Guest", email: "" });
+      }
+    } catch (error) {
+      console.error("Failed to get session:", error);
+      setUser({ name: "Guest", email: "" });
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, [pathname]);
 
   const toggleDropdown = () => {
     if (dropdownVisible) {
@@ -83,7 +109,7 @@ const NavBar = () => {
 
   const handleRefresh = () => {
     console.log("Refreshing:", pathname);
-    router.replace(pathname as any); // Replaces current route and reloads screen
+    fetchUser();
   };
 
   const handleDropdownItemPress = (action: AppRoutes) => {
@@ -92,10 +118,20 @@ const NavBar = () => {
       toggleTheme();
     } else if (action === "refresh") {
       handleRefresh();
+    } else if (action === "logout") {
+      if ("signOut" in authClient) {
+        (authClient as any)
+          .signOut()
+          .then(() => {
+            router.replace("/login");
+          })
+          .catch((error: unknown) => console.error("Logout failed:", error));
+      } else {
+        setUser(null);
+        router.replace("/login");
+        console.log("Logout triggered manually, session cleared locally");
+      }
     }
-    setTimeout(() => {
-      // Add routing logic here if needed
-    }, 200);
   };
 
   const renderDropdown = () => (
@@ -131,10 +167,10 @@ const NavBar = () => {
           className="px-4 py-3 border-b"
         >
           <Text style={{ color: textColor }} className="font-semibold">
-            John Doe
+            {user?.name || "Loading..."}
           </Text>
           <Text style={{ color: iconColor }} className="text-sm">
-            john.doe@email.com
+            {user?.email || ""}
           </Text>
         </View>
 
@@ -161,6 +197,7 @@ const NavBar = () => {
             Settings
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => handleDropdownItemPress("refresh")}
           className="flex-row items-center px-4 py-3"
@@ -214,7 +251,7 @@ const NavBar = () => {
               style={{ color: textColor }}
               className="text-xl font-semibold"
             >
-               ፊደል <Text className="text-secondary">AI</Text>
+              ፊደል <Text className="text-secondary">AI</Text>
             </Text>
           </TouchableOpacity>
 
@@ -227,7 +264,6 @@ const NavBar = () => {
         </View>
       </SafeAreaView>
 
-      {/* Dropdown rendered at root level to overlay everything */}
       {dropdownVisible && renderDropdown()}
 
       <SideDrawer
