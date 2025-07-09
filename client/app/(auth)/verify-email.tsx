@@ -57,7 +57,12 @@ export default function VerifyEmailScreen() {
         router.replace("/chats");
       }
     } catch (error) {
-      Alert.alert("Error", "Invalid OTP");
+      (global as any).showAppToast({
+        message: "Invalid OTP. Try again.!",
+        type: "error",
+        duration: 3000,
+      });
+      console.log("verfy email error", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +84,13 @@ export default function VerifyEmailScreen() {
         setCanResend(false);
         Alert.alert("OTP Sent", "A new OTP has been sent to your email.");
       }
-    } catch {
-      Alert.alert("Error", "Failed to resend OTP");
+    } catch (error) {
+      (global as any).showAppToast({
+        message: "Failed to resend OTP. Try again!",
+        type: "error",
+        duration: 3000,
+      });
+      console.log("Failed to resend OTP", error);
     }
   };
 

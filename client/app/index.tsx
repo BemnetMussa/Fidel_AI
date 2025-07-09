@@ -43,14 +43,24 @@ export default function SplashScreen() {
         const { data, error } = result;
 
         if (error || !data?.session?.token) {
-          console.warn("No valid session found:", error?.message || "No token");
+          console.log("No valid session found:", error?.message || "No token");
+          (global as any).showAppToast({
+            message: "Please sign in to access the app!",
+            type: "error",
+            duration: 3000,
+          });
           router.replace("/welcome");
         } else {
           console.log("TOKEN:", data.session.token);
           router.replace("/chats");
         }
       } catch (err) {
-        console.error("Error getting session:", err);
+        console.log("Error getting session:", err);
+        (global as any).showAppToast({
+          message: "Error while getting session!",
+          type: "error",
+          duration: 3000,
+        });
         router.replace("/welcome");
       }
     };
@@ -73,13 +83,16 @@ export default function SplashScreen() {
           accessibilityLabel="Fidel Logo"
         />
         <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-          እንኳን ወደ  ፊደል <Text className="text-secondary">AI</Text> በደና መጡ!
+          እንኳን ወደ ፊደል <Text className="text-secondary">AI</Text> በደና መጡ!
         </Text>
         {/* remove loading ui */}
       </View>
 
       <View className="pb-8">
-        <Text className="text-lg font-bold text-gray-900 mb-1"> ፊደል <Text className="text-secondary">AI</Text></Text>
+        <Text className="text-lg font-bold text-gray-900 mb-1">
+          {" "}
+          ፊደል <Text className="text-secondary">AI</Text>
+        </Text>
         <Text className="text-sm text-gray-500">Version 1.0</Text>
       </View>
     </View>

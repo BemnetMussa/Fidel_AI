@@ -77,9 +77,14 @@ export default function LoginScreen() {
         }
       );
     } catch (error) {
-      console.error("Login error:", error);
+      console.log("Login error:", error);
+      (global as any).showAppToast({
+        message: "Failed to login. Try again!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +100,6 @@ export default function LoginScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <AuthHeader title="" showBackButton />
         <Text className="m-5 text-4xl font-bold">Login Your Account</Text>
-
 
         <View className="px-6 pb-8 mt-5">
           <Controller

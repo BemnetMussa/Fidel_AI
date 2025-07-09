@@ -149,7 +149,7 @@ export const deleteConversationById = async (
       return;
     }
 
-    const deleted = await prisma.conversation.delete({
+    await prisma.conversation.delete({
       where: {
         id: convId,
       },

@@ -50,7 +50,12 @@ export default function ForgotPasswordScreen() {
         }
       );
     } catch (error) {
-      console.error("Failed to send reset email:", error);
+      console.log("Failed to send reset email:", error);
+      (global as any).showAppToast({
+        message: "Failed to send reset email. Try again!",
+        type: "error",
+        duration: 3000,
+      });
     }
   };
 

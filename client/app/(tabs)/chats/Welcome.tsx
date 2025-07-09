@@ -84,8 +84,12 @@ export default function Welcome() {
         params: { chatId: newChatId },
       });
     } catch (error) {
-      Alert.alert("Error", "Failed to send message. Try again.");
-      console.log(error);
+      (global as any).showAppToast({
+        message: "Failed to send message. Try again.!",
+        type: "error",
+        duration: 3000,
+      });
+      console.log("failed to send message", error);
     } finally {
       setIsLoading(false);
     }

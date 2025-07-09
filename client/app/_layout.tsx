@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Toast from "react-native-toast-message";
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
-import { GlobalToast } from "@/components/ui/GlobalToast";
 
 export default function RootLayout() {
   useEffect(() => {

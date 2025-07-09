@@ -26,7 +26,6 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import FeedbackModal from "./FeedbackModal";
 
-
 const { width: screenWidth } = Dimensions.get("window");
 const DRAWER_WIDTH = screenWidth * 0.75;
 
@@ -74,7 +73,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
       const { conversation } = response.data;
 
-
       if (Array.isArray(conversation)) {
         const merged = [
           ...conversation,
@@ -84,10 +82,14 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         ];
         setConversations(merged);
         await saveConversation(merged);
-
       }
     } catch (error) {
-      console.error("Error loading conversations:", error);
+      console.log("Error loading conversations:", error);
+      (global as any).showAppToast({
+        message: "Error while loading conversations!",
+        type: "error",
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -99,7 +101,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 
   const handleNewConversation = async () => {
     router.replace("/chats");
-
   };
 
   const handleConversationPress = (conversation: Conversation) => {
@@ -120,25 +121,23 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
           setNewTitle(conversation.title);
           setRenameModalVisible(true);
         },
-           },
+      },
       {
         text: "Delete",
         onPress: () =>
-          confirmDeleteConversation({ 
-            setConversations, 
-            conversation }),
+          confirmDeleteConversation({
+            setConversations,
+            conversation,
+          }),
         style: "destructive",
       },
       { text: "Cancel", style: "cancel" },
     ]);
   };
 
-
-
   const handleUpdatesAndFAQ = () => {
     console.log("Opening Updates & FAQ");
     onClose();
-
   };
 
   const handleRename = async () => {
@@ -157,8 +156,12 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       setSelectedConversation(null);
       setNewTitle("");
     } catch (err) {
-      console.error("Rename failed:", err);
-      Alert.alert("Error", "Could not rename conversation.");
+      console.log("Rename failed:", err);
+      (global as any).showAppToast({
+        message: "failed to rename conversations. Try again!",
+        type: "error",
+        duration: 3000,
+      });
     }
   };
 
@@ -200,7 +203,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
       </View>
     </TouchableOpacity>
   );
-
 
   return (
     <>
@@ -315,7 +317,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={ () => setFeedbackModalVisible(true)}
+                onPress={() => setFeedbackModalVisible(true)}
                 className="flex-row items-center justify-between px-5 py-3"
               >
                 <View className="flex-row items-center">
@@ -324,11 +326,8 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                     አስተያየት ይስጡ
                   </Text>
                 </View>
-             
-                 <Text className="text-yellow-400 text-base">⭐</Text>
 
-                 
-                
+                <Text className="text-yellow-400 text-base">⭐</Text>
               </TouchableOpacity>
               {feedbackModalVisible && (
                 <FeedbackModal
@@ -337,7 +336,6 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
                   userEmail={""}
                 />
               )}
-
 
               <TouchableOpacity
                 onPress={toggleTheme}

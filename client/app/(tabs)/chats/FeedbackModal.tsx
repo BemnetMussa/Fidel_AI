@@ -1,4 +1,11 @@
-import { Modal, TextInput, Alert, TouchableOpacity, Text, View } from "react-native";
+import {
+  Modal,
+  TextInput,
+  Alert,
+  TouchableOpacity,
+  Text,
+  View,
+} from "react-native";
 import { useState } from "react";
 import { baseURL } from "@/lib/auth-client";
 
@@ -8,7 +15,11 @@ type FeedbackModalProps = {
   userEmail: string;
 };
 
-export default function FeedbackModal({ visible, onClose, userEmail }: FeedbackModalProps) {
+export default function FeedbackModal({
+  visible,
+  onClose,
+  userEmail,
+}: FeedbackModalProps) {
   const [feedback, setFeedback] = useState("");
 
   const handleSubmitFeedback = async () => {
@@ -32,18 +43,26 @@ export default function FeedbackModal({ visible, onClose, userEmail }: FeedbackM
         Alert.alert("Error", "Failed to send feedback.");
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Something went wrong.");
+      console.log("submit feedback", error);
+      (global as any).showAppToast({
+        message: "Something went wrong. Try again.!",
+        type: "error",
+        duration: 3000,
+      });
     }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-     <View
-  className="flex-1 justify-center items-center px-6"
-  style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} 
->
-
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View
+        className="flex-1 justify-center items-center px-6"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+      >
         <View className="bg-white rounded-lg p-6 w-full">
           <Text className="text-lg font-semibold mb-3">እባክዎ አስተያየትዎን ያካትቱ</Text>
           <TextInput
@@ -57,10 +76,14 @@ export default function FeedbackModal({ visible, onClose, userEmail }: FeedbackM
           />
           <View className="flex-row justify-end mt-4 space-x-4">
             <TouchableOpacity onPress={onClose}>
-              <Text className="text-gray-500 font-semibold text-base pr-4">Cancel</Text>
+              <Text className="text-gray-500 font-semibold text-base pr-4">
+                Cancel
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSubmitFeedback}>
-              <Text className="text-blue-600 font-semibold text-base">Submit</Text>
+              <Text className="text-blue-600 font-semibold text-base">
+                Submit
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
