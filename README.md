@@ -84,29 +84,6 @@ Designed to help students:
 
 ---
 
-## Execution Roadmap
-
-| Year / Quarter | Milestone | Actions | Success Metric |
-| --- | --- | --- | --- |
-| 2025 (Q1–Q2) | Ideation & MVP Dev | Build mobile app experiences, Amharic/English explanations, quizzes | MVP ready, 10 student testers |
-| 2025 (Q2) | Pilot Launch | Recruit 10–50 students, collect feedback, iterate | 30 users, improved quiz scores/feedback |
-| 2025 (Q3) | Refine & Expand Subjects | Add more textbooks, deepen explanations & engagement | 100 active users |
-| 2025 (Q4) | Teacher/Parent Partnerships | Demo to educators, incorporate insights | 3–5 school/teacher partners |
-| 2026 (Q1–Q2) | Measure Impact & Monetize | Launch premium practice/analytics features, apply for grants | 500+ users, 2 paid or funded pilots |
-| 2026 (Q3–Q4) | Pan-African Expansion Prep | Modularize learning engine for Swahili, French, etc. | Pilot in one new African country |
-| 2027 | Scale & Impact | Multi-language rollout, showcase success stories | Thousands of users, multiple partners |
-
----
-
-## Impact & Vision by 2027
-
-- Fidel AI used by thousands of students in Ethiopia, launching across Africa
-- Real data on improved pass rates and student mastery
-- Partnerships with schools, NGOs, and investors who want “tech for real learning”
-- Recognized as the go-to AI learning coach for African learners—expanding to more regions and subjects
-
----
-
 ## Competition & Inspiration
 
 - [Exam Buddy – Ace Your Exams Smarter](https://www.exambuddy.app/#features)
