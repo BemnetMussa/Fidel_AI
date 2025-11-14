@@ -5,8 +5,8 @@ import { requireAuth } from "../middlewares/requireAuth";
 const router = express.Router();
 
 router.get("/users", requireAuth, getUsers);
-router.get("/user", requireAuth, fetchUser);
-router.post("/feedback", requireAuth, submitFeedback)
+router.get("/user/:id?", requireAuth, fetchUser);
+router.post("/feedback", requireAuth, submitFeedback);
 
 
 export default router;

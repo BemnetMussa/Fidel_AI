@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../config/db";
+import { AuthenticatedRequest } from "../types/express";
 
 export const getUsers = async (
   req: Request,
@@ -23,12 +24,28 @@ export const fetchUser = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.params.id;
+    const sessionUserId = (req as AuthenticatedRequest).user?.id;
+    const lookupId = req.params.id ?? sessionUserId;
+
+    if (!lookupId) {
+      const error = new Error("User id is required");
+      res.status(400);
+      next(error);
+      return;
+    }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: lookupId },
       select: { id: true, email: true, name: true },
     });
+
+    if (!user) {
+      const error = new Error("User not found");
+      res.status(404);
+      next(error);
+      return;
+    }
+
     res.json(user);
   } catch (error) {
     next(error);
