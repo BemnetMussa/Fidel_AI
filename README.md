@@ -14,7 +14,6 @@
 Help high school students truly understand complex subjects—science, engineering, history, and more—using AI that explains, quizzes, and coaches in Amharic and English, tailored to the Ethiopian context but ready for global expansion.
 
 ---
-
 ## Problem
 
 Most students struggle not because they don’t try, but because:
