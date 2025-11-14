@@ -1,64 +1,198 @@
-## 📁 Project Structure – `Fidel_AI`
+<div align="center">
+  <img src="client/assets/images/logo.png" alt="Fidel AI logo" width="120" />
 
-### my-chatbot-app/
+  # Fidel AI – Mobile Learning Coach
+  A culturally tuned AI tutor and study coach for Ethiopian students, delivered through a modern mobile experience built with Expo and powered by a Better Auth + Prisma backend.
+</div>
 
-- `app/` – Expo Router directory  
-  - `(auth)/` – Auth group routes  
-    - `login.tsx`  
-    - `register.tsx`  
-    - `forgot-password.tsx`  
-    - `verify-email.tsx`  
-    - `reset-password.tsx`  
-  - `(tabs)/` – Main app tabs  
-    - `chat.tsx`  
-    - `history.tsx`  
-    - `profile.tsx`  
-  - `_layout.tsx` – Root layout  
-  - `index.tsx` – Entry point
+---
 
-- `components/` – Reusable components  
-  - `ui/` – UI components  
-    - `Button.tsx`  
-    - `Input.tsx`  
-    - `OTPInput.tsx`  
-    - `LoadingSpinner.tsx`  
-  - `auth/` – Auth-specific components  
-    - `AuthHeader.tsx`  
-    - `SocialButtons.tsx`  
-    - `AuthForm.tsx`  
-  - `chat/` – Chat-specific components  
-    - `MessageBubble.tsx`  
-    - `ChatInput.tsx`  
-    - `TypingIndicator.tsx`
+## Mission
 
-- `hooks/` – Custom hooks  
-  - `useAuth.ts`  
-  - `useChat.ts`  
-  - `useKeyboard.ts`
+Help high school students truly understand complex subjects—science, engineering, history, and more—using AI that explains, quizzes, and coaches in Amharic and English, tailored to the Ethiopian context but ready for global expansion.
 
-- `services/` – API services  
-  - `auth.ts`  
-  - `chat.ts`  
-  - `api.ts`
+---
 
-- `store/` – State management (Zustand, etc.)  
-  - `authStore.ts`  
-  - `chatStore.ts`  
-  - `index.ts`
+## Problem
 
-- `types/` – TypeScript types  
-  - `auth.ts`  
-  - `chat.ts`  
-  - `api.ts`
+Most students struggle not because they don’t try, but because:
 
-- `utils/` – Utility functions  
-  - `validation.ts`  
-  - `storage.ts`  
-  - `constants.ts`
+- Textbooks are dense and hard to digest.
+- Nobody teaches them how to study effectively.
+- Existing AI tools ignore cultural context and “learning to learn.”
 
-- `assets/` – Static assets  
-  - `images/`  
-  - `icons/`  
-  - `fonts/`
+The result: massive failure rates, wasted effort, and untapped potential.
 
-- `tailwind.config.js` – Tailwind CSS configuration
+---
+
+## Solution & Unique Value
+
+Fidel AI is a **mobile application** (iOS, Android, web via Expo) that acts as a friendly tutor:
+
+- Explains textbook topics step by step
+- Provides quizzes and interactive practice
+- Speaks in the student’s own language and cultural style
+- Coaches on study strategies—not just facts
+
+Designed to help students:
+
+- Skim and break down chapters
+- Dive deeper through practice
+- Master subjects “their way,” not just the textbook way
+
+---
+
+## Core Features (MVP, 2025–2026)
+
+- Explanation modules for all major high school subjects
+- Quizzes and interactive “test yourself” flows
+- Dual-language support (Amharic + English)
+- Friendly conversational UI in the mobile app
+- Basic progress tracking and motivational feedback
+- Data collection for learning outcomes and user feedback
+
+---
+
+## Target Users
+
+- Urban high school students in Ethiopia (first cohort)
+- Expandable to other African countries and diaspora once validated
+
+---
+
+## Monetization (2026+)
+
+- Free for early users
+- Premium tiers for deeper tutoring sessions, longer practice, smarter analytics
+- Partnership opportunities with schools, NGOs, and edtech investors
+
+---
+
+## Team
+
+- Software Engineer (You)
+- AI Engineer (Cofounder)
+- Plan to add education expert and part-time advisors (2026 onward)
+
+---
+
+## Risks & Challenges
+
+- Adoption reluctance (students not trusting or using AI learning tools)
+- Tech limitations: language quality, cultural accuracy, subject coverage
+- Scaling to new languages, curricula, and device capabilities
+
+---
+
+## Execution Roadmap
+
+| Year / Quarter | Milestone | Actions | Success Metric |
+| --- | --- | --- | --- |
+| 2025 (Q1–Q2) | Ideation & MVP Dev | Build mobile app experiences, Amharic/English explanations, quizzes | MVP ready, 10 student testers |
+| 2025 (Q2) | Pilot Launch | Recruit 10–50 students, collect feedback, iterate | 30 users, improved quiz scores/feedback |
+| 2025 (Q3) | Refine & Expand Subjects | Add more textbooks, deepen explanations & engagement | 100 active users |
+| 2025 (Q4) | Teacher/Parent Partnerships | Demo to educators, incorporate insights | 3–5 school/teacher partners |
+| 2026 (Q1–Q2) | Measure Impact & Monetize | Launch premium practice/analytics features, apply for grants | 500+ users, 2 paid or funded pilots |
+| 2026 (Q3–Q4) | Pan-African Expansion Prep | Modularize learning engine for Swahili, French, etc. | Pilot in one new African country |
+| 2027 | Scale & Impact | Multi-language rollout, showcase success stories | Thousands of users, multiple partners |
+
+---
+
+## Impact & Vision by 2027
+
+- Fidel AI used by thousands of students in Ethiopia, launching across Africa
+- Real data on improved pass rates and student mastery
+- Partnerships with schools, NGOs, and investors who want “tech for real learning”
+- Recognized as the go-to AI learning coach for African learners—expanding to more regions and subjects
+
+---
+
+## Competition & Inspiration
+
+- [Exam Buddy – Ace Your Exams Smarter](https://www.exambuddy.app/#features)
+- [Model Documentation – V1](https://www.notion.so/Model-Documentation-V1-2a00a40caecb80a9b49cdf1727f5444a?pvs=21)
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+| --- | --- |
+| Mobile Client | Expo Router (React Native 0.79), NativeWind/Tailwind, React Hook Form, MMKV, Toasts, Lucide icons |
+| Backend | Node.js + Express 5, Better Auth, Prisma ORM, PostgreSQL, Gemini API integration |
+| Infra / Tooling | Nodemailer SMTP email OTP, Axios, TypeScript (client & server), ESLint, Tailwind, Expo dev tooling |
+
+---
+
+## Repository Layout
+
+```
+Fidel_AI-main/
+├── client/                # Expo mobile application
+│   ├── app/               # File-based routes (auth screens, chat tabs, welcome)
+│   ├── components/        # Reusable UI (buttons, inputs, themed views, auth widgets)
+│   ├── conversation-actions/ # Helpers for chat management (rename, clear, etc.)
+│   ├── contexts/          # Theme provider
+│   ├── lib/               # auth client, storage helpers, utilities
+│   ├── hooks/             # Color scheme + theming hooks
+│   ├── assets/            # Images, fonts, icons
+│   └── tailwind.config.js # NativeWind/Tailwind setup
+├── server/                # Express + Prisma API
+│   ├── src/
+│   │   ├── controllers/   # Conversation, message, user controllers
+│   │   ├── routes/        # REST routes with Better Auth protection
+│   │   ├── lib/           # Better Auth config, email sender
+│   │   ├── middlewares/   # `requireAuth`
+│   │   └── config/        # Prisma client
+│   └── prisma/            # Schema + migrations
+└── README.md              # You are here
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+
+- npm or pnpm
+- PostgreSQL database (for Prisma)
+- Expo Go app or emulator/simulator for mobile testing
+
+### Environment Variables
+
+Create `.env` files for both `client` and `server` (see `.env.example` templates if available):
+
+- `BETTER_AUTH_SECRET`
+- `DATABASE_URL`
+- `GEMINI_API_URL`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+- Frontend base URLs for CORS (`server/src/index.ts`)
+
+### Run the Client
+```bash
+cd client
+npm install
+npx expo start
+```
+
+### Run the Server
+```bash
+cd server
+npm install
+npx prisma migrate deploy   # or migrate dev
+npm run dev
+```
+
+---
+
+## Contributing
+
+1. Fork the repository and create a feature branch.
+2. Run linting/tests before opening a PR.
+3. Include context: missions, personas, and learning goals matter as much as code.
+
+---
+
+## Summary
+
+Fidel AI is a culturally tuned, AI-powered tutor and study coach that helps students actually learn—not just memorize—using chat, quizzes, and stepwise guidance tailored for their world. Starting local, expanding global, measuring every step.
