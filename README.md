@@ -53,35 +53,6 @@ Designed to help students:
 
 ---
 
-## Target Users
-
-- Urban high school students in Ethiopia (first cohort)
-- Expandable to other African countries and diaspora once validated
-
----
-
-## Monetization (2026+)
-
-- Free for early users
-- Premium tiers for deeper tutoring sessions, longer practice, smarter analytics
-- Partnership opportunities with schools, NGOs, and edtech investors
-
----
-
-## Team
-
-- Software Engineer (You)
-- AI Engineer (Cofounder)
-- Plan to add education expert and part-time advisors (2026 onward)
-
----
-
-## Risks & Challenges
-
-- Adoption reluctance (students not trusting or using AI learning tools)
-- Tech limitations: language quality, cultural accuracy, subject coverage
-- Scaling to new languages, curricula, and device capabilities
-
 ---
 
 ## Competition & Inspiration
